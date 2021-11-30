@@ -1,0 +1,58 @@
+start: (_NEWLINE | stmt)*
+stmt: simple_stmt | statedef
+?inner_stmt : simple_stmt| match_stmt | for_stmt | if_stmt
+?simple_stmt: small_stmt _NEWLINE
+
+small_stmt : pass_call | branch_call | full_expr |assign_call |break_stmt|continue_stmt
+?suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
+
+statedef: "state" NAME  ":" suite
+match_stmt : "match" full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT
+case_stmt:  full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
+default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
+for_stmt : "for" NAME "=" SIGNED_INT "to" SIGNED_INT  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
+if_stmt : "if" full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT
+pass_call : "pass"
+branch_call : "branch" NAME
+continue_stmt : "continue"
+break_stmt : "break"
+assign_call : NAME assign_op full_expr
+parameters: full_expr ("," full_expr)*
+
+?full_expr: or_test
+?or_test: and_test ("or" and_test)*
+?and_test: not_test ("and" not_test)*
+?not_test: "not" not_test
+         | comparison
+?comparison: expr (comp_op expr)*
+?expr : arith_expr
+?arith_expr : op (add_op op)*
+?op : atom (mul_op op)*
+!comp_op : "<"|">"|"=="|">="|"<="|"<>"|"!="
+!add_op : "+"|"-"
+!mul_op : "*"|"/"|"//"|"%"
+!assign_op : "+="|"-="|"*="|"/="|"//="|"%="|"="
+?atom : "(" full_expr ")"
+          | NUMBER
+          | STR
+          | NAME
+          | "None"
+          | "true"
+          | "false"
+          | NAME "(" [parameters] ")" -> funcall
+STR : (STRING | LONG_STRING)+
+
+%import common.CNAME -> NAME
+%import common.WS_INLINE
+%import common.SIGNED_NUMBER -> NUMBER
+%import common.INT -> INT
+%import common.SIGNED_INT -> SIGNED_INT
+
+%declare _INDENT _DEDENT
+%ignore WS_INLINE
+%ignore COMMENT
+
+COMMENT: /#[^\n]*/
+_NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
+STRING: /[ubf]?r?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/i
+LONG_STRING: /[ubf]?r?(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/is

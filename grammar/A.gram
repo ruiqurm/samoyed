@@ -1,0 +1,14 @@
+stage main:
+    speak(name + "您好，请问有什么可以帮助您")
+    match (listen(5,20)):
+        "hello":
+            branch tousu
+        "账单":
+            branch zhangdan
+        default:
+            exit
+
+stage hello:
+    result = "hello"
+    speak(result)
+
