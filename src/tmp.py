@@ -37,6 +37,8 @@ state cat:
         hello()
         if i==1:
             break
+        else:
+            print("ok")
 """
 
 def test():

@@ -11,7 +11,7 @@ match_stmt : "match" full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DE
 case_stmt:  full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
 for_stmt : "for" NAME "=" SIGNED_INT "to" SIGNED_INT  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
-if_stmt : "if" full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT
+if_stmt : "if" full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT "else" ":" _NEWLINE _INDENT inner_stmt+ _DEDENT
 pass_call : "pass"
 branch_call : "branch" NAME
 continue_stmt : "continue"
