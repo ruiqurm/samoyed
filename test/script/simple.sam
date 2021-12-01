@@ -1,0 +1,34 @@
+名字 = "ruiqurm"
+剩余金额 = 100 + one() or x==0
+state welcome
+    speak(名字 + "请问有什么可以帮您")
+    match listen(5,20) :
+         "投诉" =>
+            branch compain
+         "账单" =>
+            branch bill
+         "" =>
+            branch slience
+state compain:
+    speak("你的投诉是什么")
+    listen(5,50)
+    branch thanks
+
+state thanks:
+    speak("感谢您的来电")
+
+state bill:
+    speak("您的本月账单是"+ 剩余金额 + "元")
+
+state slience:
+    speak("听不清,请您大声一点")
+    match listen(5,20) :
+     "投诉" =>
+        branch compain
+     "账单" =>
+        branch bill
+     "" =>
+        branch slience # 这是一条注释
+
+
+

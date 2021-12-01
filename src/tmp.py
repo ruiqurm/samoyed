@@ -1,4 +1,4 @@
-from lark import Lark
+from lark import Lark,Transformer
 from lark.indenter import Indenter
 f = open("../grammar/samoyed.gram")
 
@@ -11,13 +11,21 @@ class SamoyedIndenter(Indenter):
     INDENT_type = '_INDENT'
     DEDENT_type = '_DEDENT'
     tab_len = 8
+class SamoyedTransformer(Transformer):
+    none = lambda self, _: None
+    true = lambda self, _: True
+    false = lambda self, _: False
+    def SIGNED_FLOAT(self,value):
+        return float(value)
+    def SIGNED_INT(self,value):
+        return int(value)
 
-parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter())
+parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(),transformer=SamoyedTransformer())
 
 test_tree = """
 name(1,23)
 state hello:
-    x = 2
+    x = true
     pass
 state dog:
     ok(1,2,hello()+"good"+2)
@@ -41,8 +49,10 @@ state cat:
             print("ok")
 """
 
-def test():
-    print(parser.parse(test_tree).pretty())
+
 
 if __name__ == '__main__':
-    test()
+    f = open("../test/script/simple.sam","r")
+    tree = parser.parse(f.read())
+
+    print(tree.pretty())
