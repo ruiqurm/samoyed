@@ -4,17 +4,49 @@ from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
 from typing import Union
 
 import lark
+from lark import Lark,Transformer
+from lark.indenter import Indenter
 
-from exception import SamoyedTypeError,SamoyedInterpretError
+from exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
+    SamoyedNameError, NotImplementError
+
+"""
+解释器核心
+"""
 
 
-class Stage:
+# class Stage:
+#     """
+#     DFA状态
+#     """
+#
+#     def __init__(self, ast: lark.tree.Tree):
+#         self.ast = ast
+class SamoyedIndenter(Indenter):
     """
-    DFA状态
+    间隔控制
     """
+    NL_type = '_NEWLINE'
+    OPEN_PAREN_types = []
+    CLOSE_PAREN_types = []
+    INDENT_type = '_INDENT'
+    DEDENT_type = '_DEDENT'
+    tab_len = 8
 
-    def __init__(self, ast: lark.tree.Tree):
-        self.ast = ast
+
+class SamoyedTransformer(Transformer):
+    """
+    基础的语法制导，只会转换一些常量。
+    """
+    none = lambda self, _: None
+    true = lambda self, _: True
+    false = lambda self, _: False
+
+    def SIGNED_FLOAT(self, value) -> float:
+        return float(value)
+
+    def SIGNED_INT(self, value) -> int:
+        return int(value)
 
 
 class Context:
@@ -23,38 +55,22 @@ class Context:
     """
 
     def __init__(self):
-        self._var = dict()
-
-    def names(self) -> dict:
-        return self._var
-
+        self.names = dict()
+        self.stage = None # type:lark.tree.Tree
+        self.next = None # type:lark.tree.Tree
 
 class Interpreter:
     """
     解释器
     """
-    compare_operator = {
-        ">": gt,
-        "<": lt,
-        ">=": ge,
-        "<=": le,
-        "==": eq,
-        "!=": ne,
-        "not": not_,
-        "or": or_,
-        "and": and_
-    }
-    arith_operator = {
-        "+": add,
-        "-": sub,
-        "*": mul,
-        "/": truediv,
-        "//": floordiv,
-        "%": mod
-    }
-
-    def __init__(self, ast: lark.tree.Tree):
-        self.ast = ast
+    with open("../grammar/samoyed.gram") as f:
+        parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=SamoyedTransformer())
+    def __init__(self, code:str):
+        # 词法和语法分析
+        try:
+            self.ast = self.parser.parse(code) # type:lark.tree.Tree
+        except Exception as e:
+            raise e
         self.stage = dict()
         self.entrance = None
         self.context = Context()
@@ -65,25 +81,83 @@ class Interpreter:
                 # 第一个子节点是名称
                 name = node.children[0]
                 if name == "main":
-                    self.entrance = self.stage[name] = Stage(node)
+                    self.entrance = self.stage[name] = node
                 else:
-                    self.stage[name] = Stage(node)
+                    self.stage[name] = node
             elif node.data == "assign_call":
                 # 如果是赋值语句，直接进行赋值
                 # 赋值语句由三个部分组成：0[name] 1[=] 2[expression]
                 name = node.children[0]
-                self.context.names()[name] = node.children[2]
+                self.context.names[name] = self.get_expression(node.children[2])
+        if self.entrance is None:
+            raise NotFoundEntrance
 
-    def get_expr_result(self, expr: lark.tree.Tree) -> Union[int, float, str]:
-        """
-        获取表达式的结果
-        :param expr: 表达式
-        :return: 表达式的结果
-        """
-        stack = []
-        return self.get_expression(expr)
+        self.context.stage = self.entrance
 
-    def get_expression(self, expr: Union[lark.tree.Tree, lark.lexer.Token])->Union[int,float,bool,None,str]:
+    def exec(self):
+        """
+        执行
+        :return:
+        """
+        while True:
+            for stat in self.context.stage.children:
+                # 遍历并执行每个状态中的语句
+                self.exec_statement(stat)
+            if self.context.next is None:
+                # 如果未指定下一个状态，那么结束
+                return
+            else:
+                self.context.stage = self.context.next
+                self.context.next = None
+    def exec_statement(self, stat: lark.tree.Tree) -> None:
+        """
+        执行每一个语句
+        :param stat: 语句语法节点
+        :return:
+        """
+        if stat.data == "simple_stmt":
+            simple_stmt = stat.children[0]
+            simple_stmt_type = simple_stmt.data
+            if simple_stmt_type == "branch_expr":
+                next_state = simple_stmt.children[0].data
+                if next_state in self.stage:
+                    self.context.next = self.stage[next_state]
+                else:
+                    raise SamoyedNameError
+            elif simple_stmt_type == "full_expr":
+                # 单纯的表达式不会产生任何副作用，因此跳过这里
+                pass
+            elif simple_stmt_type == "assign_expr":
+                self.context.names[simple_stmt.children[0]] = self.get_expression(simple_stmt.children[2])
+            else:
+                raise NotImplementError
+        elif stat.data == "match_stmt":
+            """
+            match expr :
+                compare_value =>
+                    stat
+            """
+            # stat.children[0]为
+            expr = stat.children[0]
+            expr_result = self.get_expression(expr)
+            for case_statment in stat.children[1:]:
+                if case_statment.data == "default_stmt":
+                    # 如果是默认情况
+                    # 直接执行这个语句
+                    self.exec_statement(case_statment.children[1])
+                    break
+                else:
+                    # 否则，判断值相同才执行
+                    compare_value = self.get_expression(case_statment.children[0])
+                    if compare_value == expr_result:
+                        self.exec_statement(case_statment.children[1])
+                        break
+        elif stat.data == "if_stmt":
+            raise NotImplementError
+        else:
+            raise NotImplementError
+
+    def get_expression(self, expr: Union[lark.tree.Tree, lark.lexer.Token]) -> Union[int, float, bool, None, str]:
         """
         递归计算表达式的值
         :param expr:
@@ -93,18 +167,21 @@ class Interpreter:
             # 如果是终结符
             if expr.type == "NAME":
                 # 如果是变量
-                return self.context.names().get(expr, None)
-            elif expr.type == "STR" or expr.type =='none' or \
-                 expr.type =="true" or expr.type=="false" or \
-                 expr.type == "SIGNED_INT" or expr.type == "SIGNED_FLOAT":
+                return self.context.names.get(expr, None)
+            elif expr.type == "STR" or expr.type == 'none' or \
+                    expr.type == "true" or expr.type == "false" or \
+                    expr.type == "SIGNED_INT" or expr.type == "SIGNED_FLOAT":
                 # 如果是一些常量
-                    return expr
+                return expr
             elif expr.type == "funcall":
                 # 如果是函数调用
                 # todo
-                return 0
+                if (func := self.context.names.get(expr, None)) is None and callable(func):
+                    return func()
+                else:
+                    raise SamoyedNameError("No such function {}".format(expr), pos=(expr.line, expr.column))
             else:
-                raise SamoyedInterpretError(expr.type,pos=(expr.line,expr.column))
+                raise SamoyedInterpretError(expr.type, pos=(expr.line, expr.column))
         else:
             # 如果是非终结符
             if expr.data == "compare_expr" or expr.data == "or_test" or \
@@ -142,3 +219,23 @@ class Interpreter:
             if isinstance(a, str) or isinstance(b, str):
                 raise SamoyedTypeError("无法运算类型{}{}{}".format(type(a), operator, type(b)))
             return self.arith_operator[operator](a, b)
+
+    compare_operator = {
+        ">": gt,
+        "<": lt,
+        ">=": ge,
+        "<=": le,
+        "==": eq,
+        "!=": ne,
+        "not": not_,
+        "or": or_,
+        "and": and_
+    }
+    arith_operator = {
+        "+": add,
+        "-": sub,
+        "*": mul,
+        "/": truediv,
+        "//": floordiv,
+        "%": mod
+    }

@@ -1,12 +1,12 @@
 start: (_NEWLINE | stmt)*
 ?stmt: simple_stmt | statedef
 ?inner_stmt : simple_stmt| match_stmt | for_stmt | if_stmt
-?simple_stmt: small_stmt _NEWLINE
+simple_stmt: small_stmt _NEWLINE
 
 ?small_stmt : pass_expr | branch_expr | full_expr |assign_expr |break_stmt|continue_stmt
-?suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
+_suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
 
-statedef: "state" NAME  ":" suite
+statedef: "state" NAME  ":" _suite
 match_stmt : "match" full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT
 case_stmt:  full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
@@ -30,7 +30,7 @@ parameters: full_expr ("," full_expr)*
 !comp_op : "<"|">"|"=="|">="|"<="|"!="
 !add_op : "+"|"-"
 !mul_op : "*"|"/"|"//"|"%"
-!assign_op : "+="|"-="|"*="|"/="|"//="|"%="|"="
+!assign_op : "="
 ?atom : "(" full_expr ")"
           | SIGNED_FLOAT
           | SIGNED_INT
@@ -58,7 +58,7 @@ SIGNED_INT : ["+"|"-"]INT
 %ignore WS_INLINE
 %ignore COMMENT
 
-
+// REG :  "/" STRING "/"
 COMMENT: /#[^\n]*/
 _NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
 STRING: /[ubf]?r?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/i
