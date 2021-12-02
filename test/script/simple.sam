@@ -1,6 +1,6 @@
 名字 = "ruiqurm"
 剩余金额 = 100 + one() or x==0
-state welcome
+state welcome:
     speak(名字 + "请问有什么可以帮您")
     match listen(5,20) :
          "投诉" =>
