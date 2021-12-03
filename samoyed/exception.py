@@ -20,7 +20,8 @@ class NotImplementError(SamoyedInterpretError):
     def __init__(self,*args,**kwargs):
         default_message = '未实现'
         super().__init__(default_message)
-
+class SyntaxError(SamoyedInterpretError):
+    pass
 class SamoyedRuntimeError(SamoyedException):
     """
     运行时错误

@@ -1,32 +1,6 @@
 from lark import Lark,Transformer
 from lark.indenter import Indenter
-f = open("../grammar/samoyed.gram")
-
-
-
-class SamoyedIndenter(Indenter):
-    """
-    间隔控制
-    """
-    NL_type = '_NEWLINE'
-    OPEN_PAREN_types = []
-    CLOSE_PAREN_types = []
-    INDENT_type = '_INDENT'
-    DEDENT_type = '_DEDENT'
-    tab_len = 8
-class SamoyedTransformer(Transformer):
-    """
-    基础的语法制导，只会转换一些常量。
-    """
-    none = lambda self, _: None
-    true = lambda self, _: True
-    false = lambda self, _: False
-    def SIGNED_FLOAT(self,value)->float:
-        return float(value)
-    def SIGNED_INT(self,value)->int:
-        return int(value)
-
-parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(),transformer=SamoyedTransformer())
+from samoyed.core import Interpreter
 
 test_tree = """
 name(1,23)
@@ -59,6 +33,7 @@ state cat:
 
 if __name__ == '__main__':
     f = open("../test/script/simple.sam","r")
-    tree = parser.parse(f.read())
+    i = Interpreter(f.read(),dont_parse=True)
+    tree = i.ast
 
     print(tree.pretty())

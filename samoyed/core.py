@@ -1,12 +1,13 @@
+import os
 from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
     , add, sub, mul, mod, truediv, floordiv
 from typing import Union
 
 import lark
-from lark import Lark,Transformer
+from lark import Lark, Transformer
 from lark.indenter import Indenter
-
+from lark.exceptions import UnexpectedToken
 from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError
 
@@ -42,12 +43,16 @@ class SamoyedTransformer(Transformer):
     true = lambda self, _: True
     false = lambda self, _: False
 
-    def SIGNED_FLOAT(self, value) -> float:
+    def SIGNED_FLOAT(self, value:lark.Token) -> float:
         return float(value)
 
-    def SIGNED_INT(self, value) -> int:
+    def SIGNED_INT(self, value:lark.Token) -> int:
         return int(value)
-
+    def STR(self,value:lark.Token)->str:
+        if len(value)>3 and value[1] == value[2] == "\"":
+            return value[3:-3]
+        else:
+            return value[1:-1]
 
 class Context:
     """
@@ -56,22 +61,25 @@ class Context:
 
     def __init__(self):
         self.names = dict()
-        self.stage = None # type:lark.tree.Tree
-        self.next = None # type:lark.tree.Tree
+        self.stage = None  # type:lark.tree.Tree
+        self.next = None  # type:lark.tree.Tree
+
 
 class Interpreter:
     """
     解释器
     """
-    with open("../grammar/samoyed.gram") as f:
+    with open("{}/samoyed.gram".format(os.path.abspath(os.path.dirname(__file__)))) as f:
         parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=SamoyedTransformer())
-    def __init__(self, code:str,dont_parse = False):
+
+    def __init__(self, code: str, dont_parse=False):
         self.__isinit = False
         # 词法和语法分析
         try:
-            self.ast = self.parser.parse(code) # type:lark.tree.Tree
-        except Exception as e:
-            raise e
+            self.ast = self.parser.parse(code)  # type:lark.tree.Tree
+        except UnexpectedToken as e:
+            print(e)
+            raise SamoyedInterpretError()
 
     def init(self):
         self.stage = dict()
@@ -97,6 +105,7 @@ class Interpreter:
 
         self.context.stage = self.entrance
         self.__isinit = True
+
     def exec(self):
         """
         执行
@@ -114,6 +123,7 @@ class Interpreter:
             else:
                 self.context.stage = self.context.next
                 self.context.next = None
+
     def exec_statement(self, stat: lark.tree.Tree) -> None:
         """
         执行每一个语句
