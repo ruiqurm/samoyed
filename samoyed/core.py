@@ -7,7 +7,7 @@ import lark
 from lark import Lark,Transformer
 from lark.indenter import Indenter
 
-from exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
+from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError
 
 """
@@ -65,12 +65,15 @@ class Interpreter:
     """
     with open("../grammar/samoyed.gram") as f:
         parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=SamoyedTransformer())
-    def __init__(self, code:str):
+    def __init__(self, code:str,dont_parse = False):
+        self.__isinit = False
         # 词法和语法分析
         try:
             self.ast = self.parser.parse(code) # type:lark.tree.Tree
         except Exception as e:
             raise e
+
+    def init(self):
         self.stage = dict()
         self.entrance = None
         self.context = Context()
@@ -93,12 +96,14 @@ class Interpreter:
             raise NotFoundEntrance
 
         self.context.stage = self.entrance
-
+        self.__isinit = True
     def exec(self):
         """
         执行
         :return:
         """
+        if not self.__isinit:
+            return
         while True:
             for stat in self.context.stage.children:
                 # 遍历并执行每个状态中的语句

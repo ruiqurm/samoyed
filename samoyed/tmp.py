@@ -5,6 +5,9 @@ f = open("../grammar/samoyed.gram")
 
 
 class SamoyedIndenter(Indenter):
+    """
+    间隔控制
+    """
     NL_type = '_NEWLINE'
     OPEN_PAREN_types = []
     CLOSE_PAREN_types = []
@@ -12,12 +15,15 @@ class SamoyedIndenter(Indenter):
     DEDENT_type = '_DEDENT'
     tab_len = 8
 class SamoyedTransformer(Transformer):
+    """
+    基础的语法制导，只会转换一些常量。
+    """
     none = lambda self, _: None
     true = lambda self, _: True
     false = lambda self, _: False
-    def SIGNED_FLOAT(self,value):
+    def SIGNED_FLOAT(self,value)->float:
         return float(value)
-    def SIGNED_INT(self,value):
+    def SIGNED_INT(self,value)->int:
         return int(value)
 
 parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(),transformer=SamoyedTransformer())
