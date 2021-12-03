@@ -19,7 +19,8 @@ break_stmt : "break"
 assign_expr : NAME assign_op full_expr
 parameters: full_expr ("," full_expr)*
 
-?full_expr: or_test
+?full_expr: or_test | conditional_expr
+conditional_expr:or_test "?" or_test ":" full_expr
 ?or_test: and_test ("or" and_test)*
 ?and_test: not_test ("and" not_test)*
 ?not_test: "not" not_test
