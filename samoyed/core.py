@@ -7,7 +7,7 @@ from typing import Union
 import lark
 from lark import Lark, Transformer
 from lark.indenter import Indenter
-from lark.exceptions import UnexpectedToken
+from lark.exceptions import UnexpectedToken,UnexpectedCharacters
 from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError
 
@@ -78,9 +78,9 @@ class Interpreter:
         try:
             self.ast = self.parser.parse(code)  # type:lark.tree.Tree
         except UnexpectedToken as e:
-            print(e)
             raise SamoyedInterpretError()
-
+        except UnexpectedCharacters as e:
+            raise SamoyedInterpretError()
     def init(self):
         self.stage = dict()
         self.entrance = None

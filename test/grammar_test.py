@@ -58,7 +58,73 @@ state hello:
         """
         测试常量和变量：true,false,none,数字，字符串,name
         """
-        pass
+        test_code = \
+"""
+state hello:
+    314
+    -314
+    1e5 # 100000.0
+    1 +- 3.14 # -314
+    3.1415629 # 3.1415629
+    .1415926 # 0.1415926
+    12345678901234567 # bigint
+    "hello world" 
+    \"\"\"
+    cross
+    line
+    \"\"\"
+    true
+    false
+    none
+    variable_name
+    __dunder_variable
+    _v_a_r_
+    _
+    中文变量名
+    _1_2_
+    3.
+"""
+        i = Interpreter(test_code, dont_parse=True)
+        state = i.ast.children[0]
+        print(state.pretty())
+        delta = 1e-3
+        self.assertEqual(state.children[1].children[0],314)
+        self.assertEqual(state.children[2].children[0],-314)
+        self.assertTrue(state.children[3].children[0]-1e5 < delta)
+        self.assertTrue(state.children[4].children[0].children[2].children[1]-(3.14) < delta)
+        self.assertTrue(state.children[5].children[0]-3.1415629 < delta)
+        self.assertTrue(state.children[6].children[0]-0.1415629 < delta)
+        self.assertEqual(state.children[7].children[0],12345678901234567)
+        self.assertEqual(state.children[8].children[0],"hello world")
+        tmp = state.children[9].children[0].replace(" ","")
+        self.assertEqual(tmp,"\ncross\nline\n")
+        self.assertTrue(state.children[10].children[0])
+        self.assertFalse(state.children[11].children[0])
+        self.assertIsNone(state.children[12].children[0])
+        self.assertEqual(state.children[13].children[0].data,"var")
+        self.assertEqual(state.children[13].children[0].children[0],"variable_name")
+        self.assertEqual(state.children[14].children[0].data,"var")
+        self.assertEqual(state.children[14].children[0].children[0],"__dunder_variable")
+        self.assertEqual(state.children[15].children[0].data,"var")
+        self.assertEqual(state.children[15].children[0].children[0],"_v_a_r_")
+        self.assertEqual(state.children[16].children[0].data,"var")
+        self.assertEqual(state.children[16].children[0].children[0],"_")
+        self.assertEqual(state.children[17].children[0].data,"var")
+        self.assertEqual(state.children[17].children[0].children[0],"中文变量名")
+        self.assertEqual(state.children[18].children[0].data,"var")
+        self.assertEqual(state.children[18].children[0].children[0],"_1_2_")
+        self.assertTrue(state.children[19].children[0] - 3.0 < delta)
+
+        with self.assertRaises(SamoyedInterpretError, msg="非法数字"):
+            i = Interpreter("1a\n", dont_parse=True)
+        with self.assertRaises(SamoyedInterpretError, msg="非法数字"):
+            i = Interpreter("1.a\n", dont_parse=True)
+        with self.assertRaises(SamoyedInterpretError, msg="引号不闭合不报错"):
+            i = Interpreter("a = \"hello\n", dont_parse=True)
+        with self.assertRaises(SamoyedInterpretError, msg="非法变量名"):
+            i = Interpreter("12x\n", dont_parse=True)
+        with self.assertRaises(SamoyedInterpretError, msg="非法变量名"):
+            i = Interpreter("1中文\n", dont_parse=True)
     def test_simple_stmt(self):
         """
         测试普通语句和赋值语句
@@ -91,11 +157,12 @@ state hello:
         stmt = stmt.children[2].children[0] # 1 , * , (3 + 4) / 2
         self.assertEqual(stmt.data, "mul_expr")
         self.assertEqual(stmt.children[0],1)
-        self.assertEqual(stmt.children[2].data,"mul_expr") # (3 + 4) / 2
-        self.assertEqual(stmt.children[2].children[0].data,"arith_expr") # 3 + 4
-        self.assertEqual(stmt.children[2].children[0].children[0],3) # 3
-        self.assertEqual(stmt.children[2].children[0].children[2],4) # 4
-        self.assertEqual(stmt.children[2].children[2],2) # 2
+        self.assertEqual(stmt.children[2].data,"plus_expr") # (3 + 4) / 2
+        self.assertEqual(stmt.children[2].children[0],3) # 3
+        self.assertEqual(stmt.children[2].children[2],4) # 4
+        self.assertEqual(stmt.children[3].children[0],"/") # /
+        self.assertEqual(stmt.children[4],2) # 2
+
         # "a" == "b"
         stmt = tmp
         stmt = stmt.children[2].children[1]
@@ -114,7 +181,7 @@ state hello:
         self.assertEqual(stmt.children[2].children[0].children[0].children[0],True)
         self.assertEqual(stmt.children[2].children[0].children[0].children[1],False)
         self.assertEqual(stmt.children[2].children[0].children[1].data,"mul_op")
-        self.assertEqual(stmt.children[2].children[0].children[2].data,"arith_expr")
+        self.assertEqual(stmt.children[2].children[0].children[2].data,"plus_expr")
         self.assertEqual(stmt.children[2].children[0].children[2].children[0],3)
         self.assertEqual(stmt.children[2].children[0].children[2].children[2],4)
 
@@ -130,16 +197,144 @@ state hello:
         self.assertEqual(stmt.children[0].children[0], True)
         self.assertEqual(stmt.children[1].data, "mul_expr")
         self.assertEqual(stmt.children[1].children[0], False)
-        self.assertEqual(stmt.children[1].children[2].data, "arith_expr")
+        self.assertEqual(stmt.children[1].children[2].data, "plus_expr")
         self.assertEqual(stmt.children[1].children[2].children[0], 3)
         self.assertEqual(stmt.children[1].children[2].children[2], 4)
 
+        i = Interpreter("1+2+(3+4*2)+5*6\n", dont_parse=True)
+        expr = i.ast.children[0].children[0]
+        self.assertEqual(7,len(expr.children))# 三个加号，4个操作数，合起来有7个
+        self.assertEqual(1,expr.children[0])
+        self.assertEqual("+",expr.children[1].children[0])
+        self.assertEqual(2,expr.children[2])
+        self.assertEqual("+",expr.children[3].children[0])
+        self.assertEqual("plus_expr",expr.children[4].data)# 3 + 4 * 2
+        self.assertEqual(3, len(expr.children[4].children)) # 3,+,4*2三项
+        self.assertEqual(3, expr.children[4].children[0])
+        self.assertEqual("mul_expr", expr.children[4].children[2].data)
+        self.assertEqual("+",expr.children[5].children[0])
+        self.assertEqual("mul_expr",expr.children[6].data)
+        self.assertEqual(3,len(expr.children[6].children)) # 5,*,6
+        self.assertEqual(5,expr.children[6].children[0])
+        self.assertEqual(6,expr.children[6].children[2])
 
     def test_if_stmt(self):
-        pass
+        test_code = \
+"""
+state hello:
+    if a==1 :
+        print("hello,world")
+    else:
+        print("don't hello world")
+"""
+        i = Interpreter(test_code, dont_parse=True)
+        stmt = i.ast.children[0].children[1]
+        self.assertEqual(3,len(stmt.children))# bool表达式，if字句，else字句
+        self.assertEqual("compare_expr",stmt.children[0].data)
+        self.assertEqual("simple_stmt",stmt.children[1].data)
+        self.assertEqual("simple_stmt",stmt.children[2].data)
+
+        # 嵌套if
+        test_code = \
+"""
+state hello:
+    if a==1 :
+        print("1")
+    else:
+        if b==1:
+            print("2")
+"""
+        i = Interpreter(test_code, dont_parse=True)
+        stmt = i.ast.children[0].children[1]
+        self.assertEqual(3,len(stmt.children))# bool表达式，if字句，else字句
+        self.assertEqual("compare_expr",stmt.children[0].data)
+        self.assertEqual("simple_stmt",stmt.children[1].data)
+        self.assertEqual("if_stmt",stmt.children[2].data)
+        self.assertEqual(2,len(stmt.children[2].children))# bool表达式，if字句
+        self.assertEqual("compare_expr",stmt.children[2].children[0].data)
+        self.assertEqual("simple_stmt",stmt.children[2].children[1].data)
+
     def test_func(self):
-        pass
+        i = Interpreter("hello()\n", dont_parse=True)
+        self.assertEqual("funccall", i.ast.children[0].children[0].data)
+        self.assertIsNone(i.ast.children[0].children[0].children[1])
+
+        i = Interpreter("hello(world,1,2,3,4)\n", dont_parse=True)
+        stmt = i.ast.children[0].children[0]
+        self.assertEqual("funccall", stmt.data)
+        self.assertEqual("hello", stmt.children[0])
+        self.assertEqual(5, len(stmt.children[1].children))
+        self.assertEqual("world", stmt.children[1].children[0].children[0])
+        self.assertEqual(1, stmt.children[1].children[1])
+        self.assertEqual(2, stmt.children[1].children[2])
+
+        #允许跨行参数，下面不应该报错
+        try:
+            i = Interpreter("hello(\na)\n", dont_parse=True)
+            i = Interpreter("hello(a,\nb)\n", dont_parse=True)
+        except SamoyedInterpretError:
+            raise AssertionError("跨行测试失败")
+        # 测试不正确的函数
+        with self.assertRaises(SamoyedInterpretError, msg="函数参数未结束没有报错"):
+            i = Interpreter("hello(world,1,)\n", dont_parse=True)
+        with self.assertRaises(SamoyedInterpretError, msg="函数括号有问题没有报错"):
+            i = Interpreter("hello(world,1,）\n", dont_parse=True)
+
     def test_match_stmt(self):
-        pass
+        code = \
+"""
+state hello:
+    match dog:
+        "samoyed" =>
+            print("samoyed")
+        "doge" =>
+            print("doge")
+        "shiba" =>
+            print("shiba")
+        default =>
+            print("unknown dog")
+"""
+        i = Interpreter(code, dont_parse=True)
+        stmt = i.ast.children[0].children[1]
+        print(stmt.pretty())
+        self.assertEqual(5,len(stmt.children))
+        self.assertEqual("case_stmt",stmt.children[1].data)
+        self.assertEqual("case_stmt",stmt.children[2].data)
+        self.assertEqual("case_stmt",stmt.children[3].data)
+        self.assertEqual("default_stmt",stmt.children[4].data)
+
+        # 嵌套match
+        code = \
+"""
+state hello:
+    match animal:
+        "cat" =>
+            print("cat")
+        "dog" =>
+            match animal:
+                "samoyed" =>
+                    print("samoyed")
+                "doge" =>
+                    print("doge")
+                "shiba" =>
+                    print("shiba")
+                default =>
+                    print("unknown dog")
+"""
+        i = Interpreter(code, dont_parse=True)
+        stmt = i.ast.children[0].children[1]
+        print(stmt.pretty())
+        self.assertEqual(3,len(stmt.children)) # cat dog
+        self.assertEqual("case_stmt",stmt.children[1].data)
+        self.assertEqual("case_stmt",stmt.children[2].data)
+        self.assertEqual("dog",stmt.children[2].children[0])
+        self.assertEqual("match_stmt",stmt.children[2].children[1].data)
+        stmt = stmt.children[2].children[1]
+        self.assertEqual(5, len(stmt.children))
+        self.assertEqual("case_stmt", stmt.children[1].data)
+        self.assertEqual("case_stmt", stmt.children[2].data)
+        self.assertEqual("case_stmt", stmt.children[3].data)
+        self.assertEqual("default_stmt", stmt.children[4].data)
+
 if __name__ == '__main__':
     unittest.main()

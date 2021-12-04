@@ -1,5 +1,9 @@
-名字 = "ruiqurm"
+名字 = "测试"
 剩余金额 = 100 + one() or x==0
+x = not (true or false) * (3 + 4)
+hello(
+a,
+b)
 state welcome:
     speak(名字 + "请问有什么可以帮您")
     match listen(5,20) :

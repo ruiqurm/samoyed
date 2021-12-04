@@ -11,13 +11,13 @@ match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _D
 case_stmt:  _full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
 for_stmt : "for" NAME "=" _full_expr "to" _full_expr  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
-if_stmt : "if" _full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT "else" ":" _NEWLINE _INDENT inner_stmt+ _DEDENT
+if_stmt : "if" _full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT ("else" ":" _NEWLINE _INDENT inner_stmt+ _DEDENT)?
 pass_expr : "pass"
 branch_expr : "branch" NAME
 continue_stmt : "continue"
 break_stmt : "break"
 assign_expr : NAME assign_op _full_expr
-parameters: _full_expr ("," _full_expr)*
+parameters: _NEWLINE* _full_expr ("," _NEWLINE* _full_expr)*
 
 _full_expr: or_test | conditional_expr
 conditional_expr:or_test "?" or_test ":" _full_expr
@@ -25,13 +25,15 @@ conditional_expr:or_test "?" or_test ":" _full_expr
 ?and_test: not_test_ ("and" not_test_)*
 ?not_test_: "not" not_test_ -> not_test
          | compare_expr
-?compare_expr: arith_expr (comp_op arith_expr)*
-?arith_expr : mul_expr (add_op mul_expr)*
-?mul_expr : atom (mul_op mul_expr)*
+?compare_expr: plus_expr (comp_op plus_expr)*
+?plus_expr : mul_expr (add_op mul_expr)*
+?mul_expr : factor (mul_op factor)*
+?factor : _unary_op factor | atom
 !comp_op : "<"|">"|"=="|">="|"<="|"!="
 !add_op : "+"|"-"
 !mul_op : "*"|"/"|"//"|"%"
 !assign_op : "="
+!_unary_op: "+"|"-"
 ?atom :   "(" _full_expr ")"
           | SIGNED_FLOAT
           | SIGNED_INT
@@ -43,7 +45,7 @@ conditional_expr:or_test "?" or_test ":" _full_expr
           | NAME "(" [parameters] ")" -> funccall
 STR : (STRING | LONG_STRING)+
 
-CN_ZH_LETTER: /[u"\u4e00-\u9fa5"]/
+CN_ZH_LETTER: /[\u4e00-\u9fa5]/
 LETTER: UCASE_LETTER | LCASE_LETTER | CN_ZH_LETTER
 NAME : ("_"|LETTER) ("_"|LETTER|DIGIT)*
 SIGNED_FLOAT : ["+"|"-"]FLOAT
