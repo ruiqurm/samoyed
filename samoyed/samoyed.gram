@@ -8,8 +8,8 @@ _suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
 
 statedef: "state" NAME  ":" _suite
 match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT
-case_stmt:  _full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
-default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT
+case_stmt:  _full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | _full_expr "=>" branch_expr
+default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "default" "=>" branch_expr
 for_stmt : "for" NAME "=" _full_expr "to" _full_expr  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
 if_stmt : "if" _full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT ("else" ":" _NEWLINE _INDENT inner_stmt+ _DEDENT)?
 pass_expr : "pass"
