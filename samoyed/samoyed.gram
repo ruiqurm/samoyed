@@ -25,7 +25,7 @@ conditional_expr:or_test "?" or_test ":" _full_expr
 ?and_test: not_test_ ("and" not_test_)*
 ?not_test_: "not" not_test_ -> not_test
          | compare_expr
-?compare_expr: plus_expr (comp_op plus_expr)*
+?compare_expr: plus_expr (comp_op plus_expr)?
 ?plus_expr : mul_expr (add_op mul_expr)*
 ?mul_expr : factor (mul_op factor)*
 ?factor : _unary_op factor | atom
@@ -35,10 +35,10 @@ conditional_expr:or_test "?" or_test ":" _full_expr
 !assign_op : "="
 !_unary_op: "+"|"-"
 ?atom :   "(" _full_expr ")"
-          | SIGNED_FLOAT
-          | SIGNED_INT
+          | FLOAT
+          | INT
           | STR
-          | NAME -> var
+          | NAME
           | "none" -> none
           | "true" -> true
           | "false" -> false
@@ -48,8 +48,7 @@ STR : (STRING | LONG_STRING)+
 CN_ZH_LETTER: /[\u4e00-\u9fa5]/
 LETTER: UCASE_LETTER | LCASE_LETTER | CN_ZH_LETTER
 NAME : ("_"|LETTER) ("_"|LETTER|DIGIT)*
-SIGNED_FLOAT : ["+"|"-"]FLOAT
-SIGNED_INT : ["+"|"-"]INT
+
 %import common.WS_INLINE
 %import common.FLOAT -> FLOAT
 %import common.DIGIT -> DIGIT
