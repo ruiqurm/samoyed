@@ -1,15 +1,17 @@
 import os
+from functools import reduce
 from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
-    , add, sub, mul, mod, truediv, floordiv
+    , sub, mul, mod, truediv, floordiv
 from typing import Union
 
 import lark
 from lark import Lark, Transformer
+from lark.exceptions import UnexpectedToken, UnexpectedCharacters
 from lark.indenter import Indenter
-from lark.exceptions import UnexpectedToken,UnexpectedCharacters
+
 from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
-    SamoyedNameError, NotImplementError
+    SamoyedNameError, NotImplementError, SamoyedRuntimeError
 
 """
 解释器核心
@@ -23,6 +25,19 @@ from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance
 #
 #     def __init__(self, ast: lark.tree.Tree):
 #         self.ast = ast
+def mock_add(a: Union[int, float, bool, str, None], b: Union[int, float, bool, str, None]) -> Union[
+    int, float, str, None]:
+    """
+    实现字符串和数字相加操作的add
+    """
+    if isinstance(a, Number) and isinstance(b, Number):
+        return a + b
+    elif isinstance(a, str) or isinstance(b, str):
+        return "{}{}".format(a, b)
+    else:
+        return None
+
+
 class SamoyedIndenter(Indenter):
     """
     间隔控制
@@ -43,16 +58,18 @@ class SamoyedTransformer(Transformer):
     true = lambda self, _: True
     false = lambda self, _: False
 
-    def SIGNED_FLOAT(self, value:lark.Token) -> float:
+    def FLOAT(self, value: lark.Token) -> float:
         return float(value)
 
-    def SIGNED_INT(self, value:lark.Token) -> int:
+    def INT(self, value: lark.Token) -> int:
         return int(value)
-    def STR(self,value:lark.Token)->str:
-        if len(value)>3 and value[1] == value[2] == "\"":
+
+    def STR(self, value: lark.Token) -> str:
+        if len(value) > 3 and value[1] == value[2] == "\"":
             return value[3:-3]
         else:
             return value[1:-1]
+
 
 class Context:
     """
@@ -81,6 +98,7 @@ class Interpreter:
             raise SamoyedInterpretError()
         except UnexpectedCharacters as e:
             raise SamoyedInterpretError()
+
     def init(self):
         self.stage = dict()
         self.entrance = None
@@ -172,68 +190,165 @@ class Interpreter:
         else:
             raise NotImplementError
 
-    def get_expression(self, expr: Union[lark.tree.Tree, lark.lexer.Token]) -> Union[int, float, bool, None, str]:
+    def get_expression(self, expr: Union[lark.tree.Tree, lark.lexer.Token, Number, str],
+                       ) \
+            -> Union[int, float, bool, None, str, type(lambda x, y: x + y)]:
         """
-        递归计算表达式的值
-        :param expr:
-        :return:
+        获取表达式的值
+        :param expr: 表达式树
+        :param context: 上下文,默认为None.如果传入上下文，那么按照上下文计算表达式的值
+        :return: 数字，字符串或者函数
         """
         if isinstance(expr, lark.lexer.Token):
-            # 如果是终结符
-            if expr.type == "NAME":
-                # 如果是变量
-                return self.context.names.get(expr, None)
-            elif expr.type == "STR" or expr.type == 'none' or \
+            """
+            如果是终结符
+            有以下几种终结符表达式：
+            * parentheses(不处理)
+            * FLOAT(语法制导处理)
+            * INT(语法制导处理)
+            * STR(语法制导处理)
+            * "none"(语法制导处理)
+            * "true"(语法制导处理)
+            * "false"(语法制导处理)
+            """
+            if expr.type == "STR" or expr.type == 'none' or \
                     expr.type == "true" or expr.type == "false" or \
                     expr.type == "SIGNED_INT" or expr.type == "SIGNED_FLOAT":
-                # 如果是一些常量
+                # 如果是一些常量，直接返回
                 return expr
-            elif expr.type == "funcall":
-                # 如果是函数调用
-                # todo
-                if (func := self.context.names.get(expr, None)) is None and callable(func):
-                    return func()
+            elif expr.type == "NAME":
+                _context = self.context.names
+                if (var := _context.get(expr)) is not None:
+                    return var
                 else:
-                    raise SamoyedNameError("No such function {}".format(expr), pos=(expr.line, expr.column))
+                    raise SamoyedNameError("No such variable")
             else:
                 raise SamoyedInterpretError(expr.type, pos=(expr.line, expr.column))
-        else:
-            # 如果是非终结符
-            if expr.data == "compare_expr" or expr.data == "or_test" or \
-                    expr.data == "and_test" or expr.data == "not_test":
+        elif isinstance(expr, Number) or isinstance(expr, str) or expr is None:
+            return expr
+        elif isinstance(expr, lark.tree.Tree):
+            """
+            如果是非终结符
+            有以下几种非终结符表达式：
+            * conditional_expr: 三目表达式。
+            * or_test: 子句之间做逻辑或运算
+            * and_test: 子句之间做逻辑与运算
+            * not_test: 子句之间做逻辑非运算
+            * compare_expr: 两个子句之间根据逻辑运算符做比较。
+            * plus_expr: 子句之间根据加减符号运算
+            * mul_expr： 子句之间根据乘除等符号做运算
+            * factor：正负号
+            * NAME：从符号表中取变量
+            * funccall：从符号表中取变量
+            """
+            if expr.data == 'add_op' or expr.data == "mul_op":
+                return self.arith_operator[expr.children[0]]
+            elif expr.data == "conditional_expr":
+                """
+                conditional_expr : bool_expr?first:second
+                bool_expr = expr.children[0]
+                """
+                bool_expr = self.get_expression(expr.children[0])
+                if bool_expr:
+                    return self.get_expression(expr.children[1])
+                else:
+                    return self.get_expression(expr.children[2])
+            elif expr.data == "compare_expr":
+                """
+                compare_expr : left compare_expr right
+                compare_operator : expr.children[1].children[0]
+                left = expr.children[0]
+                right = expr.children[2]
+                """
                 left = self.get_expression(expr.children[0])
                 right = self.get_expression(expr.children[2])
-                # expr.children[1] 是符号非终止符
-                # expr.children[1].children[0] 即比较符号本身
-                operator = expr.children[1].children[0]
-                return self.compare(operator, left, right)
-            elif expr.data == "arith_expr":
-                left = self.get_expression(expr.children[0])
-                right = self.get_expression(expr.children[2])
-                operator = expr.children[1].children[0]
-                return self.arith(operator, left, right)
+                op = self.compare_operator[expr.children[1].children[0]]
 
-    def compare(self, operator: str, a: Union[int, float, str], b: Union[int, float, str]) -> bool:
-
-        if isinstance(a, Number) and isinstance(b, Number) or isinstance(a, str) and isinstance(b, str):
-            return add(a, b)
-        else:
-            raise SamoyedTypeError("无法比较类型{}和{}".format(type(a), type(b)))
-
-    def arith(self, operator, a: Union[int, float, str], b: Union[int, float, str]) -> Union[int, float, str]:
-        if operator == "+":
-            if isinstance(a, Number) and isinstance(b, Number):
-                # 如果a,b都是数字
-                return add(a, b)
-            elif isinstance(a, str) or isinstance(b, str):
-                # a,b有字符串
-                return "{}{}".format(a, b)
+                try:
+                    # 两种类型可能不能比较
+                    result = op(left, right)
+                except Exception:
+                    raise
+                return result
+            elif expr.data == "not_test":
+                """
+                not_test : "not" test_expr
+                test_expr = expr.children[0]
+                """
+                return bool(not_(self.get_expression(expr.children[0])))
+            elif expr.data == "or_test":
+                """
+                or_test : expr1 "or" expr2 "or" expr3 "or" ....
+                expr1 = expr.children[0]
+                expr2 = expr.children[1]
+                ...
+                """
+                return bool(reduce(or_, [self.get_expression(i) for i in expr.children]))
+            elif expr.data == "and_test":
+                """
+                and_test : expr1 "and_" expr2 "and_" expr3 "and_" ....
+                expr1 = expr.children[0]
+                expr2 = expr.children[1]
+                ...
+                """
+                return bool(reduce(and_, [self.get_expression(i) for i in expr.children]))
+            elif expr.data == "plus_expr" or expr.data == "mul_expr":
+                try:
+                    result = self.reduce([self.get_expression(i) for i in expr.children])
+                except Exception:
+                    raise
+                return result
+            elif expr.data == "factor":
+                tmp = self.get_expression(expr.children[1])
+                if expr.children[0] == '-':
+                    if isinstance(tmp, str):
+                        raise SamoyedTypeError
+                    return -tmp
+                else:
+                    return tmp
+            elif expr.data == "funccall":
+                """
+                函数调用
+                """
+                _context = self.context.names
+                if (func := _context.get(expr.children[0], None)) is not None and callable(func):
+                    if expr.children[1] is not None:
+                        # 如果有参数
+                        return func(*[self.get_expression(i) for i in expr.children[1].children])
+                    else:
+                        return func()
+                else:
+                    raise SamoyedNameError("No such function")
             else:
-                raise SamoyedTypeError("无法运算类型{}{}{}".format(type(a), operator, type(b)))
+                raise NotImplementError
         else:
-            if isinstance(a, str) or isinstance(b, str):
-                raise SamoyedTypeError("无法运算类型{}{}{}".format(type(a), operator, type(b)))
-            return self.arith_operator[operator](a, b)
+            raise NotImplementError
+
+    @staticmethod
+    def reduce(l: list):
+        """
+        计算形如数值、函数混合列表的值
+        :param l:
+        :return:
+        """
+        if not l: return None
+        sum = l[0]
+        n = len(l)
+        if n % 2 == 0: raise InterruptedError("列表个数不为奇数")
+        try:
+            for i in range(1, n, 2):
+                """
+                从1开始，步长为2，每次应该都要取到函数
+                """
+                op = l[i]
+                operand2 = l[i + 1]
+                sum = op(sum, operand2)
+        except TypeError:
+            # 出现字符串加数字等类型错误
+            raise SamoyedTypeError("{}和{}无法做{}运算", type(sum), type(operand2), op)
+        except Exception as e:
+            raise SamoyedRuntimeError(e.__str__())
+        return sum
 
     compare_operator = {
         ">": gt,
@@ -242,12 +357,9 @@ class Interpreter:
         "<=": le,
         "==": eq,
         "!=": ne,
-        "not": not_,
-        "or": or_,
-        "and": and_
     }
     arith_operator = {
-        "+": add,
+        "+": mock_add,
         "-": sub,
         "*": mul,
         "/": truediv,
