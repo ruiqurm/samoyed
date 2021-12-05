@@ -136,19 +136,130 @@ class InterpreterTest(unittest.TestCase):
         orr = Tree(Token('RULE', 'or_test'),
                    [1, Tree(Token('RULE', 'plus_expr'), [2, Tree(Token('RULE', 'add_op'), [Token('PLUS', '+')]), 3]),
                     0])
-        self.assertEqual(1 or 2+3 or 0, dumb_interpreter.get_expression(orr))
+        self.assertEqual(1 or 2 + 3 or 0, dumb_interpreter.get_expression(orr))
 
         # True and False or True and True
-        andd = Tree(Token('RULE', 'or_test'), [Tree(Token('RULE', 'and_test'), [True, False]), Tree(Token('RULE', 'and_test'), [True, True])])
+        andd = Tree(Token('RULE', 'or_test'),
+                    [Tree(Token('RULE', 'and_test'), [True, False]), Tree(Token('RULE', 'and_test'), [True, True])])
         self.assertEqual(True and False or True and True, dumb_interpreter.get_expression(andd))
 
         # 三目运算符
         # true?1+2:2+3
-        three1 = Tree(Token('RULE', 'conditional_expr'), [True, Tree(Token('RULE', 'plus_expr'), [1, Tree(Token('RULE', 'add_op'), [Token('PLUS', '+')]), 2]), Tree(Token('RULE', 'plus_expr'), [2, Tree(Token('RULE', 'add_op'), [Token('PLUS', '+')]), 3])])
-        self.assertEqual(3,dumb_interpreter.get_expression(three1))
+        three1 = Tree(Token('RULE', 'conditional_expr'), [True, Tree(Token('RULE', 'plus_expr'), [1, Tree(
+            Token('RULE', 'add_op'), [Token('PLUS', '+')]), 2]), Tree(Token('RULE', 'plus_expr'), [2, Tree(
+            Token('RULE', 'add_op'), [Token('PLUS', '+')]), 3])])
+        self.assertEqual(3, dumb_interpreter.get_expression(three1))
 
-        three2 = Tree(Token('RULE', 'conditional_expr'), [False, Tree(Token('RULE', 'plus_expr'), [1, Tree(Token('RULE', 'add_op'), [Token('PLUS', '+')]), 2]), Tree(Token('RULE', 'plus_expr'), [2, Tree(Token('RULE', 'add_op'), [Token('PLUS', '+')]), 3])])
-        self.assertEqual(5,dumb_interpreter.get_expression(three2))
+        three2 = Tree(Token('RULE', 'conditional_expr'), [False, Tree(Token('RULE', 'plus_expr'), [1, Tree(
+            Token('RULE', 'add_op'), [Token('PLUS', '+')]), 2]), Tree(Token('RULE', 'plus_expr'), [2, Tree(
+            Token('RULE', 'add_op'), [Token('PLUS', '+')]), 3])])
+        self.assertEqual(5, dumb_interpreter.get_expression(three2))
+
+    def test_stmt(self):
+        """
+        测试语句的执行
+        """
+        dumb_interpreter = Interpreter("\n", dont_parse=True)
+        context = Context()
+        dumb_interpreter.context = context
+        dumb_interpreter.stage = dict()
+
+        # 测试赋值
+        assign_stmt = Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'), Tree(
+            Token('RULE', 'assign_op'), [Token('EQUAL', '=')]), 1])])
+        dumb_interpreter.exec_statement(assign_stmt)
+        self.assertEqual(context.names["y"], 1)
+
+        with self.assertRaises(SamoyedException):
+            assign_stmt = Tree(Token('RULE', 'simple_stmt'),
+                               [Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'), Tree(
+                                   Token('RULE', 'assign_op'), [Token('EQUAL', '=')]), Token('NAME', 'x')])])
+            dumb_interpreter.exec_statement(assign_stmt)
+
+        # 测试分支语句
+        class MockStage():
+            pass
+
+        dumb_interpreter.stage["y"] = MockStage()
+        branch_stmt = Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'branch_expr'), [Token('NAME', 'y')])])
+        dumb_interpreter.exec_statement(branch_stmt)
+        self.assertEqual(dumb_interpreter.stage["y"], dumb_interpreter.context.next)
+
+        # 测试if语句
+        """
+        if true:
+            x = x + 1
+        else:
+            x = 0
+        """
+        context.names["x"] = 3
+        s = Tree(Token('RULE', 'if_stmt'), [True, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                                                       [Token('NAME', 'x'),
+                                                                                        Tree(Token('RULE', 'assign_op'),
+                                                                                             [Token('EQUAL', '=')]),
+                                                                                        Tree(Token('RULE', 'plus_expr'),
+                                                                                             [Token('NAME', 'x'), Tree(
+                                                                                                 Token('RULE',
+                                                                                                       'add_op'),
+                                                                                                 [Token('PLUS', '+')]),
+                                                                                              1])])]),
+                                        Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                                                 [Token('NAME', 'x'),
+                                                                                  Tree(Token('RULE', 'assign_op'),
+                                                                                       [Token('EQUAL', '=')]), 0])])])
+        dumb_interpreter.exec_statement(s)
+        self.assertEqual(4,context.names["x"])
+        s2 = Tree(Token('RULE', 'if_stmt'), [False, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                                                       [Token('NAME', 'x'),
+                                                                                        Tree(Token('RULE', 'assign_op'),
+                                                                                             [Token('EQUAL', '=')]),
+                                                                                        Tree(Token('RULE', 'plus_expr'),
+                                                                                             [Token('NAME', 'x'), Tree(
+                                                                                                 Token('RULE',
+                                                                                                       'add_op'),
+                                                                                                 [Token('PLUS', '+')]),
+                                                                                              1])])]),
+                                        Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                                                 [Token('NAME', 'x'),
+                                                                                  Tree(Token('RULE', 'assign_op'),
+                                                                                       [Token('EQUAL', '=')]), 0])])])
+        dumb_interpreter.exec_statement(s2)
+        self.assertEqual(0,context.names["x"])
+
+
+        # 测试match
+        """
+        match x:
+            0=>
+                y = 2
+            1=>
+                y = 3
+            default =>
+                y = 4
+        """
+        match = Tree(Token('RULE', 'match_stmt'), [Token('NAME', 'x'), Tree(Token('RULE', 'case_stmt'), [0, Tree(
+            Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
+                                                                               Tree(Token('RULE', 'assign_op'),
+                                                                                    [Token('EQUAL', '=')]), 2])])]),
+                                           Tree(Token('RULE', 'case_stmt'), [1, Tree(Token('RULE', 'simple_stmt'), [
+                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
+                                                                                   Tree(Token('RULE', 'assign_op'),
+                                                                                        [Token('EQUAL', '=')]), 3])])]),
+                                           Tree(Token('RULE', 'default_stmt'), [Tree(Token('RULE', 'simple_stmt'), [
+                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
+                                                                                   Tree(Token('RULE', 'assign_op'),
+                                                                                        [Token('EQUAL', '=')]),
+                                                                                   4])])])])
+        context.names["x"] = 0
+        dumb_interpreter.exec_statement(match)
+        self.assertEqual(2,context.names["y"])
+
+        context.names["x"] = "asddsa"
+        dumb_interpreter.exec_statement(match)
+        self.assertEqual(4, context.names["y"])
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

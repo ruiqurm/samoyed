@@ -149,21 +149,31 @@ class Interpreter:
         :return:
         """
         if stat.data == "simple_stmt":
+            """
+            simple_stmt包括：
+            * pass_expr
+            * branch_expr
+            * _full_expr
+            * assign_expr
+            """
             simple_stmt = stat.children[0]
             simple_stmt_type = simple_stmt.data
             if simple_stmt_type == "branch_expr":
-                next_state = simple_stmt.children[0].data
+                # 是一个跳转语句
+                next_state = simple_stmt.children[0]
                 if next_state in self.stage:
                     self.context.next = self.stage[next_state]
                 else:
                     raise SamoyedNameError
-            elif simple_stmt_type == "full_expr":
-                # 单纯的表达式不会产生任何副作用，因此跳过这里
-                pass
+
             elif simple_stmt_type == "assign_expr":
+                # 是一个赋值语句
                 self.context.names[simple_stmt.children[0]] = self.get_expression(simple_stmt.children[2])
+            elif simple_stmt_type == "pass_expr":
+                return
             else:
-                raise NotImplementError
+                # 是一个表达式
+                self.get_expression(stat)
         elif stat.data == "match_stmt":
             """
             match expr :
@@ -177,7 +187,7 @@ class Interpreter:
                 if case_statment.data == "default_stmt":
                     # 如果是默认情况
                     # 直接执行这个语句
-                    self.exec_statement(case_statment.children[1])
+                    self.exec_statement(case_statment.children[0])
                     break
                 else:
                     # 否则，判断值相同才执行
@@ -186,7 +196,11 @@ class Interpreter:
                         self.exec_statement(case_statment.children[1])
                         break
         elif stat.data == "if_stmt":
-            raise NotImplementError
+            bool_expr = stat.children[0]
+            if bool_expr:
+                self.exec_statement(stat.children[1])
+            else:
+                self.exec_statement(stat.children[2])
         else:
             raise NotImplementError
 
