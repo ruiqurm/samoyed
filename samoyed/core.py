@@ -12,7 +12,7 @@ from lark.indenter import Indenter
 
 from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError, SamoyedRuntimeError
-
+from sys import exit
 """
 解释器核心
 """
@@ -76,12 +76,22 @@ class Context:
     上下文
     """
 
-    def __init__(self):
-        self.names = dict()
+    def __init__(self,outer_context:dict=None):
+        """
+        :param outer_context: 继承的属性
+        """
+        self.names = dict(outer_context) if outer_context is not None else dict()
+        self.names["print"] = print
+        self.names["speak"] = print
+        self.names["exit"] = self.set_exit
         self.stage = None  # type:lark.tree.Tree
         self.next = None  # type:lark.tree.Tree
+        self.__exit = False
 
-
+    def is_exit(self):
+        return self.__exit
+    def set_exit(self):
+        self.__exit = True
 class Interpreter:
     """
     解释器
@@ -89,7 +99,13 @@ class Interpreter:
     with open("{}/samoyed.gram".format(os.path.abspath(os.path.dirname(__file__)))) as f:
         parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=SamoyedTransformer())
 
-    def __init__(self, code: str, dont_parse=False):
+    def __init__(self, code: str,context:dict=None,dont_init=False):
+        """
+        
+        :param code: 代码
+        :param context: 额外的上下文
+        :param dont_init: 不进行初始化 
+        """
         self.__isinit = False
         # 词法和语法分析
         try:
@@ -98,11 +114,12 @@ class Interpreter:
             raise SamoyedInterpretError()
         except UnexpectedCharacters as e:
             raise SamoyedInterpretError()
+        self.context = Context(context)
+        self.init()
 
     def init(self):
         self.stage = dict()
         self.entrance = None
-        self.context = Context()
         # 遍历AST的顶层，确定所有的stage和入口
         for node in self.ast.children:
             if node.data == 'statedef':
@@ -113,11 +130,8 @@ class Interpreter:
                     self.entrance = self.stage[name] = node
                 else:
                     self.stage[name] = node
-            elif node.data == "assign_call":
-                # 如果是赋值语句，直接进行赋值
-                # 赋值语句由三个部分组成：0[name] 1[=] 2[expression]
-                name = node.children[0]
-                self.context.names[name] = self.get_expression(node.children[2])
+            else:
+                self.exec_statement(node)
         if self.entrance is None:
             raise NotFoundEntrance
 
@@ -132,9 +146,12 @@ class Interpreter:
         if not self.__isinit:
             return
         while True:
-            for stat in self.context.stage.children:
+            for stat in self.context.stage.children[1:]:
                 # 遍历并执行每个状态中的语句
                 self.exec_statement(stat)
+                # 如果调用了exit，直接退出
+                if self.context.is_exit():
+                    return
             if self.context.next is None:
                 # 如果未指定下一个状态，那么结束
                 return
@@ -173,7 +190,7 @@ class Interpreter:
                 return
             else:
                 # 是一个表达式
-                self.get_expression(stat)
+                self.get_expression(stat.children[0])
         elif stat.data == "match_stmt":
             """
             match expr :

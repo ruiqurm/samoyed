@@ -27,7 +27,7 @@ state main:
 state 中文状态码:
     pass
 """
-        i = Interpreter(test_code,dont_parse = True)
+        i = Interpreter(test_code,dont_init = True)
         self.assertEqual(len(i.ast.children),4)
         self.check_stage(i.ast.children[0],"hello")
         self.check_stage(i.ast.children[1],"aaaaa")
@@ -44,7 +44,7 @@ state hello
     pass
 """
         with self.assertRaises(SamoyedInterpretError,msg = "缺少冒号未报错"):
-            i = Interpreter(test_code, dont_parse=True)
+            i = Interpreter(test_code, dont_init=True)
 
         # state内没有东西
         test_code = \
@@ -52,7 +52,7 @@ state hello
 state hello:
 """
         with self.assertRaises(SamoyedInterpretError, msg="未闭合state不报错"):
-            i = Interpreter(test_code, dont_parse=True)
+            i = Interpreter(test_code, dont_init=True)
 
     def test_value(self)->None:
         """
@@ -84,7 +84,7 @@ state hello:
     _1_2_
     3.
 """
-        i = Interpreter(test_code, dont_parse=True)
+        i = Interpreter(test_code, dont_init=True)
         state = i.ast.children[0]
         print(state.pretty())
         delta = 1e-3
@@ -110,15 +110,15 @@ state hello:
         self.assertTrue(state.children[19].children[0] - 3.0 < delta)
 
         with self.assertRaises(SamoyedInterpretError, msg="非法数字"):
-            i = Interpreter("1a\n", dont_parse=True)
+            i = Interpreter("1a\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="非法数字"):
-            i = Interpreter("1.a\n", dont_parse=True)
+            i = Interpreter("1.a\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="引号不闭合不报错"):
-            i = Interpreter("a = \"hello\n", dont_parse=True)
+            i = Interpreter("a = \"hello\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="非法变量名"):
-            i = Interpreter("12x\n", dont_parse=True)
+            i = Interpreter("12x\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="非法变量名"):
-            i = Interpreter("1中文\n", dont_parse=True)
+            i = Interpreter("1中文\n", dont_init=True)
     def test_simple_stmt(self):
         """
         测试普通语句和赋值语句
@@ -132,7 +132,7 @@ state hello:
     z = not (true or false) * (3 + 4)
     z = not true or false * (3 + 4)  
 """
-        i = Interpreter(test_code, dont_parse=True)
+        i = Interpreter(test_code, dont_init=True)
         self.assertEqual(len(i.ast.children), 1)
         self.assertEqual(len(i.ast.children[0].children), 5,"少生成了simple_stmt") # hello是第一个元素，所以一共有4个
         # 对于第一个语句：
@@ -195,7 +195,7 @@ state hello:
         self.assertEqual(stmt.children[1].children[2].children[0], 3)
         self.assertEqual(stmt.children[1].children[2].children[2], 4)
 
-        i = Interpreter("1+2+(3+4*2)+5*6\n", dont_parse=True)
+        i = Interpreter("1+2+(3+4*2)+5*6\n", dont_init=True)
         expr = i.ast.children[0].children[0]
         self.assertEqual(7,len(expr.children))# 三个加号，4个操作数，合起来有7个
         self.assertEqual(1,expr.children[0])
@@ -221,7 +221,7 @@ state hello:
     else:
         print("don't hello world")
 """
-        i = Interpreter(test_code, dont_parse=True)
+        i = Interpreter(test_code, dont_init=True)
         stmt = i.ast.children[0].children[1]
         self.assertEqual(3,len(stmt.children))# bool表达式，if字句，else字句
         self.assertEqual("compare_expr",stmt.children[0].data)
@@ -238,7 +238,7 @@ state hello:
         if b==1:
             print("2")
 """
-        i = Interpreter(test_code, dont_parse=True)
+        i = Interpreter(test_code, dont_init=True)
         stmt = i.ast.children[0].children[1]
         self.assertEqual(3,len(stmt.children))# bool表达式，if字句，else字句
         self.assertEqual("compare_expr",stmt.children[0].data)
@@ -249,11 +249,11 @@ state hello:
         self.assertEqual("simple_stmt",stmt.children[2].children[1].data)
 
     def test_func(self):
-        i = Interpreter("hello()\n", dont_parse=True)
+        i = Interpreter("hello()\n", dont_init=True)
         self.assertEqual("funccall", i.ast.children[0].children[0].data)
         self.assertIsNone(i.ast.children[0].children[0].children[1])
 
-        i = Interpreter("hello(world,1,2,3,4)\n", dont_parse=True)
+        i = Interpreter("hello(world,1,2,3,4)\n", dont_init=True)
         stmt = i.ast.children[0].children[0]
         self.assertEqual("funccall", stmt.data)
         self.assertEqual("hello", stmt.children[0])
@@ -264,15 +264,15 @@ state hello:
 
         #允许跨行参数，下面不应该报错
         try:
-            i = Interpreter("hello(\na)\n", dont_parse=True)
-            i = Interpreter("hello(a,\nb)\n", dont_parse=True)
+            i = Interpreter("hello(\na)\n", dont_init=True)
+            i = Interpreter("hello(a,\nb)\n", dont_init=True)
         except SamoyedInterpretError:
             raise AssertionError("跨行测试失败")
         # 测试不正确的函数
         with self.assertRaises(SamoyedInterpretError, msg="函数参数未结束没有报错"):
-            i = Interpreter("hello(world,1,)\n", dont_parse=True)
+            i = Interpreter("hello(world,1,)\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="函数括号有问题没有报错"):
-            i = Interpreter("hello(world,1,）\n", dont_parse=True)
+            i = Interpreter("hello(world,1,）\n", dont_init=True)
 
     def test_match_stmt(self):
         code = \
@@ -288,7 +288,7 @@ state hello:
         default =>
             print("unknown dog")
 """
-        i = Interpreter(code, dont_parse=True)
+        i = Interpreter(code, dont_init=True)
         stmt = i.ast.children[0].children[1]
         print(stmt.pretty())
         self.assertEqual(5,len(stmt.children))
@@ -315,7 +315,7 @@ state hello:
                 default =>
                     print("unknown dog")
 """
-        i = Interpreter(code, dont_parse=True)
+        i = Interpreter(code, dont_init=True)
         stmt = i.ast.children[0].children[1]
         print(stmt.pretty())
         self.assertEqual(3,len(stmt.children)) # cat dog

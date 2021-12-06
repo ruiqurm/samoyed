@@ -32,7 +32,7 @@ class InterpreterTest(unittest.TestCase):
         测试计算表达式是否正确
         """
         # 哑解释器不需要内容，只需要计算即可
-        dumb_interpreter = Interpreter("\n", dont_parse=True)
+        dumb_interpreter = Interpreter("\n", dont_init=True)
         context = Context()
         dumb_interpreter.context = context
         # 测试常量
@@ -159,7 +159,7 @@ class InterpreterTest(unittest.TestCase):
         """
         测试语句的执行
         """
-        dumb_interpreter = Interpreter("\n", dont_parse=True)
+        dumb_interpreter = Interpreter("\n", dont_init=True)
         context = Context()
         dumb_interpreter.context = context
         dumb_interpreter.stage = dict()

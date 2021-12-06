@@ -32,8 +32,6 @@ state cat:
 
 
 if __name__ == '__main__':
-    f = open("../test/script/simple.sam","r")
-    i = Interpreter(f.read(),dont_parse=True)
-    tree = i.ast
-
-    print(tree.pretty())
+    f = open("../test/script/print.sam","r")
+    i = Interpreter(f.read())
+    i.exec()
