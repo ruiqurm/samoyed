@@ -2,19 +2,26 @@
 内置函数
 """
 import threading
-import inspect,ctypes
+import signal
 
-import ctypes
+import time
+from functools import wraps
 
-def kill_thread(thread):
-    """
-    thread: a threading.Thread object
-    """
-    thread_id = thread.ident
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
-    if res > 1:
-        ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
-        print('Exception raise failure')
+def timeout(seconds=0.1):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise Exception(f"Timeout for function '{func.__name__}'")
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.setitimer(signal.ITIMER_REAL,seconds) #used timer instead of alarm
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+        return wraps(func)(wrapper)
+    return decorator
 """
 延迟流
 """
@@ -24,12 +31,14 @@ class TimeControl:
     如果主线程先结束，那么会取消计时器；
     否则，计时器会杀死主线程
     """
-    def __init__(self,func,max_wait,min_wait=None):
+    def __init__(self,func,max_wait,min_wait=None,timeout_interval=0.2,sleep_interval=0.2):
         self.func = func
         self.timeout = threading.Event()
         self.can_exit = threading.Event()
         self.max_wait = max_wait
         self.min_wait = min_wait
+        self.timeout_interval = 0.2
+        self.sleep_interval = 0.2
     def __call__(self,*args,**kwargs):
         """
         生成流
@@ -42,21 +51,28 @@ class TimeControl:
             self.min_wait_timer.start()
         else:
             self.can_exit.set()
-
         self.max_wait_timer = threading.Timer(self.max_wait, lambda:self.max_wait_handler(self.timeout))
         self.max_wait_timer.start()
-        t = threading.Thread(target = self.main)
-        t.start()
-        self.max_wait_timer.join()
-    def main(self):
+
+        @timeout(self.timeout_interval)
+        def timeout_on_interval(*args,**kwargs):
+            return self.func(*args,*kwargs)
+
         while True:
-            yield self.func()
+            self.main = threading.Thread(target = lambda:self.func())
+            # 防止阻塞
+            try:
+                result = timeout_on_interval(*args,**kwargs)
+            except Exception:
+                pass
+            else:
+                yield result
             if self.timeout.is_set():
-                print("done")
                 self.max_wait_timer.cancel()
-                if self.min_wait_timer is not None:
+                if self.min_wait is not None:
                     self.min_wait_timer.cancel()
                 return
+            time.sleep(self.sleep_interval)
     def min_wait_handler(self,event:threading.Event):
         if not event.is_set():
             event.set()
@@ -64,3 +80,11 @@ class TimeControl:
         # 最大超时时间
         if not event.is_set():
             event.set()
+
+# result = []
+# t = TimeControl(input,2)
+# for i in t():
+#     result.append(i)
+#     print("".join(result))
+# if not result:
+#     print("silence")

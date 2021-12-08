@@ -7,9 +7,10 @@ full_expr : _full_expr
 _suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
 
 statedef: "state" NAME  ":" _suite
-match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT
+match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  "match" stream_expr ":" _NEWLINE _INDENT case_stmt+ slience_stmt? _DEDENT
 case_stmt:  _full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | _full_expr "=>" branch_expr
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "default" "=>" branch_expr
+slience_stmt : "slience" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "slience" "=>" branch_expr
 for_stmt : "for" NAME "=" _full_expr "to" _full_expr  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
 if_stmt : "if" _full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT ("else" ":" _NEWLINE _INDENT inner_stmt+ _DEDENT)?
 pass_expr : "pass"
@@ -18,7 +19,8 @@ continue_stmt : "continue"
 break_stmt : "break"
 assign_expr : NAME assign_op _full_expr
 parameters: _NEWLINE* _full_expr ("," _NEWLINE* _full_expr)*
-
+stream_expr_parameter :  INT (","INT)?
+stream_expr : "@""(" stream_expr_parameter ")" NAME "(" [parameters] ")"
 _full_expr: or_test | conditional_expr
 conditional_expr:or_test "?" or_test ":" _full_expr
 ?or_test: and_test ("or" and_test)*

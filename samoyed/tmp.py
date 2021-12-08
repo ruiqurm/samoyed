@@ -33,5 +33,5 @@ state cat:
 
 if __name__ == '__main__':
     f = open("../test/script/print.sam","r")
-    i = Interpreter(f.read())
-    i.exec()
+    i = Interpreter(f.read(),dont_init=True)
+    print(i.ast.pretty())

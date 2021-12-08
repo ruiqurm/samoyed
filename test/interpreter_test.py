@@ -6,7 +6,7 @@ from operator import add, mul, sub, truediv, mod
 
 from lark import Token, Tree
 
-from samoyed.core import Interpreter, Context
+from samoyed.core import Interpreter, Context,mock_add
 from samoyed.exception import *
 
 
@@ -21,7 +21,7 @@ class InterpreterTest(unittest.TestCase):
         self.assertEqual(1 * 10 // 5, Interpreter.reduce([1, mul, 10, truediv, 5]))
         self.assertEqual(1 * 2 % 5, Interpreter.reduce([1, mul, 2, mod, 5]))
         self.assertEqual("hello " + "world" + "!", Interpreter.reduce(["hello ", add, "world", add, "!"]))
-        self.assertEqual("asdasd1", Interpreter.reduce(["asdasd", Interpreter.mock_add, 1]))
+        self.assertEqual("asdasd1", Interpreter.reduce(["asdasd", mock_add, 1]))
         with self.assertRaises(SamoyedException):
             Interpreter.reduce(["adssad", mul, "asdasd"])
         with self.assertRaises(SamoyedException):
@@ -257,7 +257,6 @@ class InterpreterTest(unittest.TestCase):
         context.names["x"] = "asddsa"
         dumb_interpreter.exec_statement(match)
         self.assertEqual(4, context.names["y"])
-
 
 
 
