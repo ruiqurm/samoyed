@@ -32,6 +32,6 @@ state cat:
 
 
 if __name__ == '__main__':
-    f = open("../test/script/print.sam","r")
+    f = open("../test/script/simple.sam","r")
     i = Interpreter(f.read(),dont_init=True)
     print(i.ast.pretty())

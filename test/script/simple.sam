@@ -1,18 +1,15 @@
 名字 = "测试"
-剩余金额 = 100 + one() or x==0
-x = not (true or false) * (3 + 4)
-hello(
-a,
-b)
-state welcome:
+剩余金额 = 100
+state main:
     speak(名字 + "请问有什么可以帮您")
-    match listen(5,20) :
+    match @(5)listen():
          "投诉" =>
             branch compain
          "账单" =>
             branch bill
-         "" =>
-            branch slience
+         slience =>
+            speak("听不见，请再说一遍")
+            branch main
 state compain:
     speak("你的投诉是什么")
     listen(5,50)
@@ -23,16 +20,6 @@ state thanks:
 
 state bill:
     speak("您的本月账单是"+ 剩余金额 + "元")
-
-state slience:
-    speak("听不清,请您大声一点")
-    match listen(5,20) :
-     "投诉" =>
-        branch compain
-     "账单" =>
-        branch bill
-     "" =>
-        branch slience # 这是一条注释
 
 
 

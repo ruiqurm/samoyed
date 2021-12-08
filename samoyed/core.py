@@ -1,4 +1,5 @@
 import os
+from functools import partial
 from functools import reduce
 from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
@@ -10,9 +11,10 @@ from lark import Lark, Transformer
 from lark.exceptions import UnexpectedToken, UnexpectedCharacters
 from lark.indenter import Indenter
 
+from samoyed.libs import TimeControl
 from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError, SamoyedRuntimeError
-from sys import exit
+
 """
 解释器核心
 """
@@ -76,7 +78,7 @@ class Context:
     上下文
     """
 
-    def __init__(self,outer_context:dict=None):
+    def __init__(self, outer_context: dict = None):
         """
         :param outer_context: 继承的属性
         """
@@ -90,8 +92,11 @@ class Context:
 
     def is_exit(self):
         return self.__exit
+
     def set_exit(self):
         self.__exit = True
+
+
 class Interpreter:
     """
     解释器
@@ -99,7 +104,7 @@ class Interpreter:
     with open("{}/samoyed.gram".format(os.path.abspath(os.path.dirname(__file__)))) as f:
         parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=SamoyedTransformer())
 
-    def __init__(self, code: str,context:dict=None,dont_init=False):
+    def __init__(self, code: str, context: dict = None, dont_init=False):
         """
         
         :param code: 代码
@@ -115,7 +120,8 @@ class Interpreter:
         except UnexpectedCharacters as e:
             raise SamoyedInterpretError()
         self.context = Context(context)
-        self.init()
+        if not dont_init:
+            self.init()
 
     def init(self):
         self.stage = dict()
@@ -167,11 +173,12 @@ class Interpreter:
         """
         if stat.data == "simple_stmt":
             """
+            如果是一个简单的表达式
             simple_stmt包括：
-            * pass_expr
-            * branch_expr
-            * _full_expr
-            * assign_expr
+            * pass_expr 什么也不做.
+            * branch_expr 跳转表达式
+            * _full_expr 一个普通表达式，如果这个表达式非过程，那么它是无副作用的
+            * assign_expr 赋值表达式
             """
             simple_stmt = stat.children[0]
             simple_stmt_type = simple_stmt.data
@@ -193,25 +200,89 @@ class Interpreter:
                 self.get_expression(stat.children[0])
         elif stat.data == "match_stmt":
             """
+            match字句有两种形式
+            第一种形式是带有时间控制的匹配
+            其中，@的第一个参数是超时时间，必选；第二个参数是最少持续时间，可选；
+            @后应该接入一个函数调用。延时表达式会不断调用这个函数
+            match @(10,2)funcall :
+                compare_expr =>
+                    stat
+                ...
+                slience =>
+                    stat
+            第二种形式是普通的多值匹配
             match expr :
-                compare_value =>
+                compare_expr =>
+                    stat
+                compare_expr =>
+                    stat
+                default =>
                     stat
             """
-            # stat.children[0]为
-            expr = stat.children[0]
-            expr_result = self.get_expression(expr)
-            for case_statment in stat.children[1:]:
-                if case_statment.data == "default_stmt":
-                    # 如果是默认情况
-                    # 直接执行这个语句
-                    self.exec_statement(case_statment.children[0])
-                    break
+            expr = stat.children[0] # expr
+            if isinstance(expr, lark.tree.Tree) and expr.data == "stream_expr":
+                """
+                如果是限定时间的语句...
+                会尝试一直读取值，直到超时或者匹配成功
+                """
+                # 获取函数
+                _context = self.context.names
+                if (func := _context.get(expr.children[1], None)) is not None and callable(func):
+                    if expr.children[2] is not None:
+                        # 如果有参数
+                        func = partial(func, *[self.get_expression(i) for i in expr.children[2].children])
                 else:
-                    # 否则，判断值相同才执行
-                    compare_value = self.get_expression(case_statment.children[0])
-                    if compare_value == expr_result:
-                        self.exec_statement(case_statment.children[1])
+                    raise SamoyedNameError("No such function")
+
+                # 构造一个TimeControl对象。将这个函数传入构造
+                control = TimeControl(func, *expr.children[0].children)
+                results = [] # 每次读取的值
+                # 预先算出每个case的表达式，不包含silence字句
+                cases = [self.get_expression(case_statment.children[0]) for case_statment in stat.children[1:] if
+                         case_statment.data != "slience"]
+                find_flag = False  # 是否完成匹配
+                finded_case = None # 匹配的是第几个
+
+                # 遍历生成器
+                # 如果超时，生成式结束
+                for result in control():
+                    # 保存每次结果
+                    results.append(result)
+                    # 如果结果出现在case字句中，那么跳出
+                    for i, case in enumerate(cases):
+                        concat_result = "".join(results)
+                        if concat_result.find(case) != -1:
+                            find_flag = True
+                            finded_case = i
+                            break
+                    # 如果匹配，那么执行这个子块
+                    if find_flag and control.can_exit.is_set():
+                        self.exec_statement(stat.children[finded_case + 1].children[1])
+                        return
+                # 没有完成任何匹配
+                # 如果有slience块，执行slience块
+                if stat.children[-1].data == "slience_stmt":
+                    for st in stat.children[-1].children:
+                        # 执行块中的每个语句
+                        self.exec_statement(st)
+            else:
+                expr_result = self.get_expression(expr)
+                for case_statment in stat.children[1:]: # stat.children[0]是bool表达式
+                    if case_statment.data == "default_stmt":
+                        # 如果是默认情况
+                        # 直接执行这个语句
+                        for st in case_statment.children[0].children:
+                            # 执行块中的每个语句
+                            self.exec_statement(st)
                         break
+                    else:
+                        # 否则，判断值相同才执行
+                        compare_value = self.get_expression(case_statment.children[0])
+                        if compare_value == expr_result:
+                            for st in case_statment.children[1].children:
+                                # 执行块中的每个语句
+                                self.exec_statement(st)
+                            break
         elif stat.data == "if_stmt":
             bool_expr = stat.children[0]
             if bool_expr:
@@ -222,7 +293,7 @@ class Interpreter:
             raise NotImplementError
 
     def get_expression(self, expr: Union[lark.tree.Tree, lark.lexer.Token, Number, str],
-                       ) \
+                       dont_compute: bool = False) \
             -> Union[int, float, bool, None, str, type(lambda x, y: x + y)]:
         """
         获取表达式的值

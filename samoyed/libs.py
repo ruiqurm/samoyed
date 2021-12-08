@@ -53,14 +53,11 @@ class TimeControl:
             self.can_exit.set()
         self.max_wait_timer = threading.Timer(self.max_wait, lambda:self.max_wait_handler(self.timeout))
         self.max_wait_timer.start()
-
         @timeout(self.timeout_interval)
         def timeout_on_interval(*args,**kwargs):
             return self.func(*args,*kwargs)
 
         while True:
-            self.main = threading.Thread(target = lambda:self.func())
-            # 防止阻塞
             try:
                 result = timeout_on_interval(*args,**kwargs)
             except Exception:
@@ -73,6 +70,10 @@ class TimeControl:
                     self.min_wait_timer.cancel()
                 return
             time.sleep(self.sleep_interval)
+    def cancel(self):
+        self.max_wait_timer.cancel()
+        if self.min_wait is not None:
+            self.min_wait_timer.cancel()
     def min_wait_handler(self,event:threading.Event):
         if not event.is_set():
             event.set()
@@ -82,9 +83,13 @@ class TimeControl:
             event.set()
 
 # result = []
-# t = TimeControl(input,2)
+# t = TimeControl(input,30)
 # for i in t():
 #     result.append(i)
 #     print("".join(result))
+#     if "".join(result).find("stop") != -1:
+#         t.cancel()
+#         break
 # if not result:
 #     print("silence")
+# print("done")
