@@ -2,27 +2,26 @@ import multiprocessing
 import threading
 import time
 import unittest
-
+import threading
 from samoyed.libs import TimeControl
 
 
+def mock_input(q: multiprocessing.Queue, plan: dict) -> None:
+    """
+    模拟输入
+    :return:
+    """
+    keys = sorted(list(plan.keys()))
+    if not keys:
+        return
+    for i, key in enumerate(keys):
+        if i == 0:
+            time.sleep(keys[i])
+        else:
+            time.sleep(keys[i] - keys[i - 1])
+        q.put(plan[key])
 class TimeControlTest(unittest.TestCase):
-    @staticmethod
-    def mock_input(q: multiprocessing.Queue, plan: dict) -> None:
-        """
-        模拟输入
-        :return:
-        """
-        keys = sorted(list(plan.keys()))
-        if not keys:
-            return
-        for i, key in enumerate(keys):
-            if i==0:
-                time.sleep(keys[i])
-            else:
-                time.sleep(keys[i] - keys[i-1])
-            q.put(plan[key])
-
+    
 
     def test_timecontrol(self):
         """
@@ -46,7 +45,7 @@ class TimeControlTest(unittest.TestCase):
         """
         q = multiprocessing.Queue()
         plan = {0: "hello", 0.5: "world"}
-        process = multiprocessing.Process(target=self.mock_input, args=(q, plan))
+        process = multiprocessing.Process(target=mock_input, args=(q, plan))
         e = threading.Event()
         t = threading.Timer(0.5, lambda: e.set())
         c = TimeControl(input, 1,0.5)
@@ -60,12 +59,13 @@ class TimeControlTest(unittest.TestCase):
         """
         q = multiprocessing.Queue()
         plan = {0: "hello", 0.5: "world"}
-        process = multiprocessing.Process(target=self.mock_input, args=(q, plan))
+        process = multiprocessing.Process(target=mock_input, args=(q, plan))
         process.start()
         t = TimeControl(lambda q: q.get(), 1)
         result = []
         for i in t(q):
-            result.append(i)
+            if i is not None:
+                result.append(i)
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0], "hello")
         self.assertEqual(result[1], "world")
@@ -77,12 +77,13 @@ class TimeControlTest(unittest.TestCase):
         """
         q = multiprocessing.Queue()
         plan = {}
-        process = multiprocessing.Process(target=self.mock_input, args=(q, plan))
+        process = multiprocessing.Process(target=mock_input, args=(q, plan))
         process.start()
         t = TimeControl(lambda q: q.get(), 1)
         result = []
         for i in t(q):
-            result.append(i)
+            if i is not None:
+                result.append(i)
         self.assertEqual(len(result), 0)
         process.join()
         print("[测试能否跳出阻塞函数] pass")
@@ -92,12 +93,13 @@ class TimeControlTest(unittest.TestCase):
         """
         q = multiprocessing.Queue()
         plan = {0: "hello", 2 : "world"} # world 不应该接到
-        process = multiprocessing.Process(target=self.mock_input, args=(q, plan))
+        process = multiprocessing.Process(target=mock_input, args=(q, plan))
         process.start()
         t = TimeControl(lambda q: q.get(), 1) # 超时时间1s
         result = []
         for i in t(q):
-            result.append(i)
+            if i is not None:
+                result.append(i)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], "hello")
         process.join()
@@ -109,16 +111,16 @@ class TimeControlTest(unittest.TestCase):
         """
         q = multiprocessing.Queue()
         plan = {0: "hello", 0.5: "world",1:"stop"}  # 输入stop停止
-        process = multiprocessing.Process(target=self.mock_input, args=(q, plan))
+        thread = threading.Thread(target=mock_input, args=(q, plan))
         e = threading.Event()
-        timer = threading.Timer(1.01, lambda: e.set()) # 计时器
-        process.start()
-        t = TimeControl(lambda q: q.get(), 3)  # 超时时间5s
+        timer = threading.Timer(1.1, lambda: e.set()) # 计时器
+        thread.start()
+        t = TimeControl(lambda q: q.get(), 3)  # 超时时间3s
         results = []
         timer.start()
         for result in t(q):
-            results.append(result)
-            print(results)
+            if result is not None:
+                results.append(result)
             if "".join(results).find("stop") != -1:
                 t.cancel()
                 break
@@ -127,23 +129,30 @@ class TimeControlTest(unittest.TestCase):
         timer.join()
     def test_matching_before_min_time(self):
         """
-        测试是否会提出退出
+        测试是否会提前退出
         """
         q = multiprocessing.Queue()
         plan = {0: "hello", 0.5: "world",1:"stop"}  # 输入stop停止
-        process = multiprocessing.Process(target=self.mock_input, args=(q, plan))
+        thread = threading.Thread(target=mock_input, args=(q, plan))
         e = threading.Event()
-        timer = threading.Timer(1.1, lambda: e.set()) # 计时器
-        process.start()
+        e2= threading.Event()
+        timer_pre = threading.Timer(1.1, lambda: e.set()) # 提前退出的计时器
+        timer_after = threading.Timer(3, lambda: e2.set()) # 超时的计时器
+
+        thread.start()
         t = TimeControl(lambda q: q.get(), 3, 1.2)  # 超时时间5s，第2秒才能退出
         results = []
-        timer.start()
+        timer_pre.start()
+        timer_after.start()
         for result in t(q):
-            results.append(result)
-            print(results)
+            if result is not None:
+                results.append(result)
             if "".join(results).find("stop") != -1 and t.can_exit.is_set():
                 t.cancel()
                 break
         self.assertTrue(e.is_set()) # 1.9s的时候计时器才触发。如果1s就退出了就会报错
-        timer.join()
+        self.assertFalse(e2.is_set()) # 不应该超时
+        timer_pre.join()
+        timer_after.cancel()
+
 

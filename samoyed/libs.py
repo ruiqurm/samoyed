@@ -47,7 +47,7 @@ class TimeControl:
         self.timeout.clear()
         self.can_exit.clear()
         if self.min_wait is not None:
-            self.min_wait_timer = threading.Timer(self.min_wait, lambda:self.max_wait_handler(self.can_exit))
+            self.min_wait_timer = threading.Timer(self.min_wait, lambda:self.min_wait_handler(self.can_exit))
             self.min_wait_timer.start()
         else:
             self.can_exit.set()
@@ -61,7 +61,7 @@ class TimeControl:
             try:
                 result = timeout_on_interval(*args,**kwargs)
             except Exception:
-                pass
+                yield None
             else:
                 yield result
             if self.timeout.is_set():
@@ -77,6 +77,7 @@ class TimeControl:
     def min_wait_handler(self,event:threading.Event):
         if not event.is_set():
             event.set()
+
     def max_wait_handler(self,event:threading.Event):
         # 最大超时时间
         if not event.is_set():

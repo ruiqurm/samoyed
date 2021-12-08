@@ -2,7 +2,7 @@
 剩余金额 = 100
 state main:
     speak(名字 + "请问有什么可以帮您")
-    match @(5)listen():
+    match @(5,2)listen():
          "投诉" =>
             branch compain
          "账单" =>
@@ -12,7 +12,7 @@ state main:
             branch main
 state compain:
     speak("你的投诉是什么")
-    listen(5,50)
+    str = listen()
     branch thanks
 
 state thanks:

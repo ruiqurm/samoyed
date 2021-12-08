@@ -5,11 +5,13 @@ import unittest
 from operator import add, mul, sub, truediv, mod
 
 from lark import Token, Tree
-
+from functools import partial
+from queue import Queue
+from threading import Thread
 from samoyed.core import Interpreter, Context,mock_add
 from samoyed.exception import *
-
-
+from test.libs_test import mock_input
+from typing import Callable
 class InterpreterTest(unittest.TestCase):
     def test_reduce(self):
         """
@@ -250,15 +252,190 @@ class InterpreterTest(unittest.TestCase):
                                                                                    Tree(Token('RULE', 'assign_op'),
                                                                                         [Token('EQUAL', '=')]),
                                                                                    4])])])])
+        # 执行x=0子句
         context.names["x"] = 0
         dumb_interpreter.exec_statement(match)
         self.assertEqual(2,context.names["y"])
 
+        # 执行default
         context.names["x"] = "asddsa"
         dumb_interpreter.exec_statement(match)
         self.assertEqual(4, context.names["y"])
 
+    def test_timecontrol_match(self):
+        """
+        测试带时间控制的match语句
+        :return:
+        """
+        # 建立哑解释器
+        dumb_interpreter = Interpreter("\n", dont_init=True)
+        context = Context()
+        dumb_interpreter.context = context
+        # 重新绑定input函数
+        # listen将从一个队列中取值
+        q = Queue()
+        input_end: Callable[[dict], None] = partial(mock_input, q)
+        output_end: Callable[[], str] = partial(lambda qq: qq.get(), q)
+        context.names["listen"] = output_end
 
+        # 输入一个简单的语句
+        """
+        match @(2)listen():
+            "投诉" =>
+                s="投诉"
+            "账单" =>
+                s="账单"
+            slience =>
+                s="沉默"
+        """
+        print("[简单匹配测试]",end=" ")
+        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'stream_expr'),
+                                                [Tree(Token('RULE', 'stream_expr_parameter'), [2]),
+                                                 Token('NAME', 'listen'), None]), Tree(Token('RULE', 'case_stmt'),
+                                                                                       ['投诉', Tree(
+                                                                                           Token('RULE', 'simple_stmt'),
+                                                                                           [Tree(Token('RULE',
+                                                                                                       'assign_expr'),
+                                                                                                 [Token('NAME', 's'),
+                                                                                                  Tree(Token('RULE',
+                                                                                                             'assign_op'),
+                                                                                                       [Token('EQUAL',
+                                                                                                              '=')]),
+                                                                                                  '投诉'])])]),
+                                           Tree(Token('RULE', 'case_stmt'), ['账单', Tree(Token('RULE', 'simple_stmt'), [
+                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                   Tree(Token('RULE', 'assign_op'),
+                                                                                        [Token('EQUAL', '=')]),
+                                                                                   '账单'])])]),
+                                           Tree(Token('RULE', 'slience_stmt'), [Tree(Token('RULE', 'simple_stmt'), [
+                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                   Tree(Token('RULE', 'assign_op'),
+                                                                                        [Token('EQUAL', '=')]),
+                                                                                   '沉默'])])])])
+
+        # 设定初始值
+        context.names["s"] = ""
+        plan = {0:"投诉"}
+
+        # 进程用来提供input输入
+        process = Thread(target=input_end, args=(plan,))
+        process.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("投诉",context.names["s"])
+        process.join()
+        print("pass")
+
+        # 排空队列
+        while not q.empty():q.get()
+
+        ############
+        #  超时测试 #
+        ###########
+        print("[超时测试]",end=" ")
+        # 设定初始值
+        context.names["s"] = ""
+        plan = {2.2: "投诉"} # 超时时间为2s，这个应该要超时。
+
+        # 进程用来提供input输入
+        process = Thread(target=input_end, args=(plan,))
+        process.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("沉默", context.names["s"])
+        process.join()
+        print("pass")
+
+        # 排空队列
+        while not q.empty(): q.get()
+
+        ###############
+        #  多次输入测试 #
+        ###############
+        print("[多次输入测试]", end=" ")
+        # 设定初始值
+        context.names["s"] = ""
+        plan = {0: "emmm..",0.5:"我要",1:"对你们",1.9:"投诉"}
+        # 进程用来提供input输入
+        thread = Thread(target=input_end,args=(plan,))
+        # process = Process(target=input_end, args=(plan,))
+        # process.start()
+        thread.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("投诉", context.names["s"])
+        thread.join()
+        print("pass")
+
+
+        ######################
+        #  多次输入但是没有匹配 #
+        ######################
+        # 排空队列
+        while not q.empty(): q.get()
+        print("[多次输入但是没有匹配]", end=" ")
+        # 设定初始值
+        context.names["s"] = ""
+        plan = {0: "emmm..", 0.5: "我要", 1: "对你们", 1.9: "进行"}
+        # 进程用来提供input输入
+        thread = Thread(target=input_end, args=(plan,))
+        thread.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("沉默", context.names["s"])
+        thread.join()
+        print("pass")
+
+        ##############
+        # 最短时间限制 #
+        ##############
+
+        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'stream_expr'),
+                                                             [Tree(Token('RULE', 'stream_expr_parameter'), [4,2]),
+                                                              Token('NAME', 'listen'), None]),
+                                                        Tree(Token('RULE', 'case_stmt'),
+                                                             ['投诉', Tree(
+                                                                 Token('RULE', 'simple_stmt'),
+                                                                 [Tree(Token('RULE',
+                                                                             'assign_expr'),
+                                                                       [Token('NAME', 's'),
+                                                                        Tree(Token('RULE',
+                                                                                   'assign_op'),
+                                                                             [Token('EQUAL',
+                                                                                    '=')]),
+                                                                        '投诉'])])]),
+                                                        Tree(Token('RULE', 'case_stmt'),
+                                                             ['账单', Tree(Token('RULE', 'simple_stmt'), [
+                                                                 Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                                     Tree(Token('RULE',
+                                                                                                                'assign_op'),
+                                                                                                          [Token(
+                                                                                                              'EQUAL',
+                                                                                                              '=')]),
+                                                                                                     '账单'])])]),
+                                                        Tree(Token('RULE', 'slience_stmt'),
+                                                             [Tree(Token('RULE', 'simple_stmt'), [
+                                                                 Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                                     Tree(Token('RULE',
+                                                                                                                'assign_op'),
+                                                                                                          [Token(
+                                                                                                              'EQUAL',
+                                                                                                              '=')]),
+                                                                                                     '沉默'])])])])
+        # 排空队列
+        while not q.empty(): q.get()
+        print("[最短时间限制]", end=" ")
+        # 设定初始值
+        context.names["s"] = ""
+        plan = {0: "投诉"}
+        # 进程用来提供input输入
+        thread = Thread(target=input_end, args=(plan,))
+        thread.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("投诉", context.names["s"])
+        thread.join()
+        print("pass")
 
 if __name__ == "__main__":
     unittest.main()

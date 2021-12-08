@@ -11,8 +11,8 @@ from lark import Lark, Transformer
 from lark.exceptions import UnexpectedToken, UnexpectedCharacters
 from lark.indenter import Indenter
 
-from samoyed.libs import TimeControl
-from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
+from libs import TimeControl
+from exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError, SamoyedRuntimeError
 
 """
@@ -85,6 +85,7 @@ class Context:
         self.names = dict(outer_context) if outer_context is not None else dict()
         self.names["print"] = print
         self.names["speak"] = print
+        self.names["listen"] = input
         self.names["exit"] = self.set_exit
         self.stage = None  # type:lark.tree.Tree
         self.next = None  # type:lark.tree.Tree
@@ -239,7 +240,7 @@ class Interpreter:
                 results = [] # 每次读取的值
                 # 预先算出每个case的表达式，不包含silence字句
                 cases = [self.get_expression(case_statment.children[0]) for case_statment in stat.children[1:] if
-                         case_statment.data != "slience"]
+                         case_statment.data != "slience_stmt"]
                 find_flag = False  # 是否完成匹配
                 finded_case = None # 匹配的是第几个
 
@@ -247,13 +248,16 @@ class Interpreter:
                 # 如果超时，生成式结束
                 for result in control():
                     # 保存每次结果
-                    results.append(result)
+                    if result is not None:
+                        results.append(result)
                     # 如果结果出现在case字句中，那么跳出
+                    if not control.can_exit.is_set():continue
                     for i, case in enumerate(cases):
                         concat_result = "".join(results)
                         if concat_result.find(case) != -1:
                             find_flag = True
                             finded_case = i
+                            control.cancel()
                             break
                     # 如果匹配，那么执行这个子块
                     if find_flag and control.can_exit.is_set():
@@ -269,17 +273,23 @@ class Interpreter:
                 expr_result = self.get_expression(expr)
                 for case_statment in stat.children[1:]: # stat.children[0]是bool表达式
                     if case_statment.data == "default_stmt":
-                        # 如果是默认情况
-                        # 直接执行这个语句
-                        for st in case_statment.children[0].children:
+                        """
+                        如果是默认情况，直接执行这个语句
+                        parser保证默认情况在最后面
+                        """
+                        for st in case_statment.children:
                             # 执行块中的每个语句
                             self.exec_statement(st)
                         break
                     else:
-                        # 否则，判断值相同才执行
-                        compare_value = self.get_expression(case_statment.children[0])
-                        if compare_value == expr_result:
-                            for st in case_statment.children[1].children:
+                        """
+                        否则，判断值相同才执行
+                        字符串只要包含子串就会执行                        
+                        """
+                        matching_value = self.get_expression(case_statment.children[0])
+                        is_str = isinstance(matching_value, str)
+                        if is_str  and expr_result.find(matching_value) or not is_str and matching_value ==expr_result:
+                            for st in case_statment.children[1:]:
                                 # 执行块中的每个语句
                                 self.exec_statement(st)
                             break
