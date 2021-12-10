@@ -1,9 +1,12 @@
 名字 = "测试"
 剩余金额 = 100
+#listen << pipe("test_in")
+#speak  >> pipe("test_out")
+# optioanl($name,$ss)
 state main:
-    speak(名字 + "请问有什么可以帮您")
+    speak(名字 + "，请问有什么可以帮您")
     match @(5,2)listen():
-         "投诉" =>
+         /投诉(.*)/ =>
             branch compain
          "账单" =>
             branch bill

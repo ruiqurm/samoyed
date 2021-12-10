@@ -1,14 +1,16 @@
 start: (_NEWLINE | stmt)*
-?stmt: simple_stmt | statedef
+?stmt: simple_stmt | statedef | stream_expr
 ?inner_stmt : simple_stmt| match_stmt | for_stmt | if_stmt
 simple_stmt: small_stmt _NEWLINE
 full_expr : _full_expr
 ?small_stmt : pass_expr | branch_expr | _full_expr |assign_expr |break_stmt|continue_stmt
 _suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
-
+stream_expr : input_stream_expr | output_stream_expr
+input_stream_expr : NAME "<<"  NAME
+output_stream_expr : NAME ">>" NAME
 statedef: "state" NAME  ":" _suite
-match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  "match" stream_expr ":" _NEWLINE _INDENT case_stmt+ slience_stmt? _DEDENT
-case_stmt:  _full_expr "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | _full_expr "=>" branch_expr
+match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  "match" at_expr ":" _NEWLINE _INDENT case_stmt+ slience_stmt? _DEDENT
+case_stmt:  [_full_expr | reg]  "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | [_full_expr | reg] "=>" branch_expr
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "default" "=>" branch_expr
 slience_stmt : "slience" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "slience" "=>" branch_expr
 for_stmt : "for" NAME "=" _full_expr "to" _full_expr  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
@@ -19,8 +21,8 @@ continue_stmt : "continue"
 break_stmt : "break"
 assign_expr : NAME assign_op _full_expr
 parameters: _NEWLINE* _full_expr ("," _NEWLINE* _full_expr)*
-stream_expr_parameter :  INT (","INT)?
-stream_expr : "@""(" stream_expr_parameter ")" NAME "(" [parameters] ")"
+at_expr_parameter :  INT (","INT)?
+at_expr : "@""(" at_expr_parameter ")" NAME "(" [parameters] ")"
 _full_expr: or_test | conditional_expr
 conditional_expr:or_test "?" or_test ":" _full_expr
 ?or_test: and_test ("or" and_test)*
@@ -45,6 +47,7 @@ conditional_expr:or_test "?" or_test ":" _full_expr
           | "true" -> true
           | "false" -> false
           | NAME "(" [parameters] ")" -> funccall
+          | "$" NAME -> dollar_var
 STR : (STRING | LONG_STRING)+
 
 CN_ZH_LETTER: /[\u4e00-\u9fa5]/
@@ -62,7 +65,7 @@ NAME : ("_"|LETTER) ("_"|LETTER|DIGIT)*
 %ignore WS_INLINE
 %ignore COMMENT
 
-// REG :  "/" STRING "/"
+reg : "/" /[^\/\n]+/ "/"
 COMMENT: /#[^\n]*/
 _NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
 STRING: /[ubf]?r?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/i

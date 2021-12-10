@@ -2,16 +2,19 @@
 解释器测试
 """
 import unittest
-from operator import add, mul, sub, truediv, mod
-
-from lark import Token, Tree
 from functools import partial
+from operator import add, mul, sub, truediv, mod
 from queue import Queue
 from threading import Thread
-from samoyed.core import Interpreter, Context,mock_add
+from typing import Callable
+
+from lark import Token, Tree
+
+from samoyed.core import Interpreter, Context, mock_add
 from samoyed.exception import *
 from test.libs_test import mock_input
-from typing import Callable
+
+
 class InterpreterTest(unittest.TestCase):
     def test_reduce(self):
         """
@@ -196,38 +199,43 @@ class InterpreterTest(unittest.TestCase):
         """
         context.names["x"] = 3
         s = Tree(Token('RULE', 'if_stmt'), [True, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                                       [Token('NAME', 'x'),
-                                                                                        Tree(Token('RULE', 'assign_op'),
-                                                                                             [Token('EQUAL', '=')]),
-                                                                                        Tree(Token('RULE', 'plus_expr'),
-                                                                                             [Token('NAME', 'x'), Tree(
-                                                                                                 Token('RULE',
-                                                                                                       'add_op'),
-                                                                                                 [Token('PLUS', '+')]),
-                                                                                              1])])]),
-                                        Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                                 [Token('NAME', 'x'),
-                                                                                  Tree(Token('RULE', 'assign_op'),
-                                                                                       [Token('EQUAL', '=')]), 0])])])
+                                                                                           [Token('NAME', 'x'),
+                                                                                            Tree(Token('RULE',
+                                                                                                       'assign_op'),
+                                                                                                 [Token('EQUAL', '=')]),
+                                                                                            Tree(Token('RULE',
+                                                                                                       'plus_expr'),
+                                                                                                 [Token('NAME', 'x'),
+                                                                                                  Tree(
+                                                                                                      Token('RULE',
+                                                                                                            'add_op'),
+                                                                                                      [Token('PLUS',
+                                                                                                             '+')]),
+                                                                                                  1])])]),
+                                            Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                                                     [Token('NAME', 'x'),
+                                                                                      Tree(Token('RULE', 'assign_op'),
+                                                                                           [Token('EQUAL', '=')]),
+                                                                                      0])])])
         dumb_interpreter.exec_statement(s)
-        self.assertEqual(4,context.names["x"])
-        s2 = Tree(Token('RULE', 'if_stmt'), [False, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                                       [Token('NAME', 'x'),
-                                                                                        Tree(Token('RULE', 'assign_op'),
-                                                                                             [Token('EQUAL', '=')]),
-                                                                                        Tree(Token('RULE', 'plus_expr'),
-                                                                                             [Token('NAME', 'x'), Tree(
-                                                                                                 Token('RULE',
-                                                                                                       'add_op'),
-                                                                                                 [Token('PLUS', '+')]),
-                                                                                              1])])]),
-                                        Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                                 [Token('NAME', 'x'),
-                                                                                  Tree(Token('RULE', 'assign_op'),
-                                                                                       [Token('EQUAL', '=')]), 0])])])
+        self.assertEqual(4, context.names["x"])
+        s2 = Tree(Token('RULE', 'if_stmt'),
+                  [False, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                                   [Token('NAME', 'x'),
+                                                                    Tree(Token('RULE', 'assign_op'),
+                                                                         [Token('EQUAL', '=')]),
+                                                                    Tree(Token('RULE', 'plus_expr'),
+                                                                         [Token('NAME', 'x'), Tree(
+                                                                             Token('RULE',
+                                                                                   'add_op'),
+                                                                             [Token('PLUS', '+')]),
+                                                                          1])])]),
+                   Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
+                                                            [Token('NAME', 'x'),
+                                                             Tree(Token('RULE', 'assign_op'),
+                                                                  [Token('EQUAL', '=')]), 0])])])
         dumb_interpreter.exec_statement(s2)
-        self.assertEqual(0,context.names["x"])
-
+        self.assertEqual(0, context.names["x"])
 
         # 测试match
         """
@@ -243,19 +251,26 @@ class InterpreterTest(unittest.TestCase):
             Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
                                                                                Tree(Token('RULE', 'assign_op'),
                                                                                     [Token('EQUAL', '=')]), 2])])]),
-                                           Tree(Token('RULE', 'case_stmt'), [1, Tree(Token('RULE', 'simple_stmt'), [
-                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
-                                                                                   Tree(Token('RULE', 'assign_op'),
-                                                                                        [Token('EQUAL', '=')]), 3])])]),
-                                           Tree(Token('RULE', 'default_stmt'), [Tree(Token('RULE', 'simple_stmt'), [
-                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
-                                                                                   Tree(Token('RULE', 'assign_op'),
-                                                                                        [Token('EQUAL', '=')]),
-                                                                                   4])])])])
+                                                   Tree(Token('RULE', 'case_stmt'),
+                                                        [1, Tree(Token('RULE', 'simple_stmt'), [
+                                                            Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
+                                                                                                Tree(Token('RULE',
+                                                                                                           'assign_op'),
+                                                                                                     [Token('EQUAL',
+                                                                                                            '=')]),
+                                                                                                3])])]),
+                                                   Tree(Token('RULE', 'default_stmt'),
+                                                        [Tree(Token('RULE', 'simple_stmt'), [
+                                                            Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'y'),
+                                                                                                Tree(Token('RULE',
+                                                                                                           'assign_op'),
+                                                                                                     [Token('EQUAL',
+                                                                                                            '=')]),
+                                                                                                4])])])])
         # 执行x=0子句
         context.names["x"] = 0
         dumb_interpreter.exec_statement(match)
-        self.assertEqual(2,context.names["y"])
+        self.assertEqual(2, context.names["y"])
 
         # 执行default
         context.names["x"] = "asddsa"
@@ -288,54 +303,63 @@ class InterpreterTest(unittest.TestCase):
             slience =>
                 s="沉默"
         """
-        print("[简单匹配测试]",end=" ")
-        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'stream_expr'),
-                                                [Tree(Token('RULE', 'stream_expr_parameter'), [2]),
-                                                 Token('NAME', 'listen'), None]), Tree(Token('RULE', 'case_stmt'),
-                                                                                       ['投诉', Tree(
-                                                                                           Token('RULE', 'simple_stmt'),
-                                                                                           [Tree(Token('RULE',
-                                                                                                       'assign_expr'),
-                                                                                                 [Token('NAME', 's'),
-                                                                                                  Tree(Token('RULE',
-                                                                                                             'assign_op'),
-                                                                                                       [Token('EQUAL',
+        print("[简单匹配测试]", end=" ")
+        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'at_expr'),
+                                                             [Tree(Token('RULE', 'at_expr_parameter'), [2]),
+                                                              Token('NAME', 'listen'), None]),
+                                                        Tree(Token('RULE', 'case_stmt'),
+                                                             ['投诉', Tree(
+                                                                 Token('RULE', 'simple_stmt'),
+                                                                 [Tree(Token('RULE',
+                                                                             'assign_expr'),
+                                                                       [Token('NAME', 's'),
+                                                                        Tree(Token('RULE',
+                                                                                   'assign_op'),
+                                                                             [Token('EQUAL',
+                                                                                    '=')]),
+                                                                        '投诉'])])]),
+                                                        Tree(Token('RULE', 'case_stmt'),
+                                                             ['账单', Tree(Token('RULE', 'simple_stmt'), [
+                                                                 Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                                     Tree(Token('RULE',
+                                                                                                                'assign_op'),
+                                                                                                          [Token(
+                                                                                                              'EQUAL',
                                                                                                               '=')]),
-                                                                                                  '投诉'])])]),
-                                           Tree(Token('RULE', 'case_stmt'), ['账单', Tree(Token('RULE', 'simple_stmt'), [
-                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
-                                                                                   Tree(Token('RULE', 'assign_op'),
-                                                                                        [Token('EQUAL', '=')]),
-                                                                                   '账单'])])]),
-                                           Tree(Token('RULE', 'slience_stmt'), [Tree(Token('RULE', 'simple_stmt'), [
-                                               Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
-                                                                                   Tree(Token('RULE', 'assign_op'),
-                                                                                        [Token('EQUAL', '=')]),
-                                                                                   '沉默'])])])])
+                                                                                                     '账单'])])]),
+                                                        Tree(Token('RULE', 'slience_stmt'),
+                                                             [Tree(Token('RULE', 'simple_stmt'), [
+                                                                 Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                                     Tree(Token('RULE',
+                                                                                                                'assign_op'),
+                                                                                                          [Token(
+                                                                                                              'EQUAL',
+                                                                                                              '=')]),
+                                                                                                     '沉默'])])])])
 
         # 设定初始值
         context.names["s"] = ""
-        plan = {0:"投诉"}
+        plan = {0: "投诉"}
 
         # 进程用来提供input输入
         process = Thread(target=input_end, args=(plan,))
         process.start()
         # 执行语句
         dumb_interpreter.exec_statement(match_stmt)
-        self.assertEqual("投诉",context.names["s"])
+        self.assertEqual("投诉", context.names["s"])
         process.join()
         print("pass")
 
         # 排空队列
-        while not q.empty():q.get()
+        while not q.empty(): q.get()
 
         ############
         #  超时测试 #
         ###########
-        print("[超时测试]",end=" ")
+        print("[超时测试]", end=" ")
         # 设定初始值
         context.names["s"] = ""
-        plan = {2.2: "投诉"} # 超时时间为2s，这个应该要超时。
+        plan = {2.2: "投诉"}  # 超时时间为2s，这个应该要超时。
 
         # 进程用来提供input输入
         process = Thread(target=input_end, args=(plan,))
@@ -355,9 +379,9 @@ class InterpreterTest(unittest.TestCase):
         print("[多次输入测试]", end=" ")
         # 设定初始值
         context.names["s"] = ""
-        plan = {0: "emmm..",0.5:"我要",1:"对你们",1.9:"投诉"}
+        plan = {0: "emmm..", 0.5: "我要", 1: "对你们", 1.9: "投诉"}
         # 进程用来提供input输入
-        thread = Thread(target=input_end,args=(plan,))
+        thread = Thread(target=input_end, args=(plan,))
         # process = Process(target=input_end, args=(plan,))
         # process.start()
         thread.start()
@@ -366,7 +390,6 @@ class InterpreterTest(unittest.TestCase):
         self.assertEqual("投诉", context.names["s"])
         thread.join()
         print("pass")
-
 
         ######################
         #  多次输入但是没有匹配 #
@@ -390,8 +413,8 @@ class InterpreterTest(unittest.TestCase):
         # 最短时间限制 #
         ##############
 
-        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'stream_expr'),
-                                                             [Tree(Token('RULE', 'stream_expr_parameter'), [4,2]),
+        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'at_expr'),
+                                                             [Tree(Token('RULE', 'at_expr_parameter'), [4, 2]),
                                                               Token('NAME', 'listen'), None]),
                                                         Tree(Token('RULE', 'case_stmt'),
                                                              ['投诉', Tree(
@@ -434,6 +457,95 @@ class InterpreterTest(unittest.TestCase):
         # 执行语句
         dumb_interpreter.exec_statement(match_stmt)
         self.assertEqual("投诉", context.names["s"])
+        thread.join()
+        print("pass")
+
+    def test_reg_match(self):
+        """
+        测试带正则表达式的匹配
+        """
+        # 建立哑解释器
+        dumb_interpreter = Interpreter("\n", dont_init=True)
+        context = Context()
+        dumb_interpreter.context = context
+        # 重新绑定input函数
+        # listen将从一个队列中取值
+        q = Queue()
+        input_end: Callable[[dict], None] = partial(mock_input, q)
+        output_end: Callable[[], str] = partial(lambda qq: qq.get(), q)
+        context.names["listen"] = output_end
+
+        match_stmt = Tree(Token('RULE', 'match_stmt'), [Tree(Token('RULE', 'at_expr'),
+                                                             [Tree(Token('RULE', 'at_expr_parameter'), [2]),
+                                                              Token('NAME', 'listen'), None]),
+                                                        Tree(Token('RULE', 'case_stmt'),
+                                                             [Tree(Token('RULE', 'reg'), [Token('__ANON_8', '.*投诉(.*)')]),
+                                                              Tree(Token('RULE', 'simple_stmt'), [
+                                                                  Tree(Token('RULE', 'assign_expr'),
+                                                                       [Token('NAME', 's'),
+                                                                        Tree(Token('RULE', 'assign_op'),
+                                                                             [Token('EQUAL', '=')]), '投诉'])])]),
+                                                        Tree(Token('RULE', 'case_stmt'), ['账单', Tree(
+                                                            Token('RULE', 'simple_stmt'), [
+                                                                Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                                    Tree(Token('RULE',
+                                                                                                               'assign_op'),
+                                                                                                         [Token('EQUAL',
+                                                                                                                '=')]),
+                                                                                                    '账单'])])]),
+                                                        Tree(Token('RULE', 'slience_stmt'), [
+                                                            Tree(Token('RULE', 'simple_stmt'), [
+                                                                Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
+                                                                                                    Tree(Token('RULE',
+                                                                                                               'assign_op'),
+                                                                                                         [Token('EQUAL',
+                                                                                                                '=')]),
+                                                                                                    '沉默'])])])])
+        #######################
+        # 测试带正则表达式匹配失败#
+        #######################
+        print("[测试带正则表达式匹配失败]", end=" ")
+        # 设定初始值
+        context.names["s"] = ""
+        plan = {0: "我要投", 2.1: "投诉AA"}  # 只匹配 投诉.*
+        # 进程用来提供input输入
+        thread = Thread(target=input_end, args=(plan,))
+        thread.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("沉默", context.names["s"])
+        thread.join()
+        print("pass")
+
+        #######################
+        # 测试带正则表达式匹配成功#
+        #######################
+        print("[测试带正则表达式匹配成功]", end=" ")
+        while not q.empty(): q.get()
+        context.names["s"] = ""
+        plan = {0: "我要投", 1.6: "投诉AA"}  # 只匹配 投诉.*
+        # 进程用来提供input输入
+        thread = Thread(target=input_end, args=(plan,))
+        thread.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("投诉", context.names["s"])
+        thread.join()
+        print("pass")
+
+        #######################
+        # 测试带正则表达式匹配成功2#
+        #######################
+        print("[测试带正则表达式匹配成功2]", end=" ")
+        while not q.empty(): q.get()
+        context.names["s"] = ""
+        plan = {0: "我要投", 1.6: "账单"}
+        # 进程用来提供input输入
+        thread = Thread(target=input_end, args=(plan,))
+        thread.start()
+        # 执行语句
+        dumb_interpreter.exec_statement(match_stmt)
+        self.assertEqual("账单", context.names["s"])
         thread.join()
         print("pass")
 

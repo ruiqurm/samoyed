@@ -1,19 +1,20 @@
 import os
+import re
 from functools import partial
 from functools import reduce
 from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
     , sub, mul, mod, truediv, floordiv
-from typing import Union
+from typing import Union, Tuple
 
 import lark
 from lark import Lark, Transformer
 from lark.exceptions import UnexpectedToken, UnexpectedCharacters
 from lark.indenter import Indenter
 
-from libs import TimeControl
-from exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
+from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError, SamoyedRuntimeError
+from .libs import TimeControl
 
 """
 解释器核心
@@ -78,11 +79,9 @@ class Context:
     上下文
     """
 
-    def __init__(self, outer_context: dict = None):
-        """
-        :param outer_context: 继承的属性
-        """
-        self.names = dict(outer_context) if outer_context is not None else dict()
+    def __init__(self, names: dict = None, dollar_names: dict = None):
+        self.names = dict(names) if names is not None else dict()
+        self.dollar = dict(dollar_names) if dollar_names is not None else dict()
         self.names["print"] = print
         self.names["speak"] = print
         self.names["listen"] = input
@@ -220,8 +219,8 @@ class Interpreter:
                 default =>
                     stat
             """
-            expr = stat.children[0] # expr
-            if isinstance(expr, lark.tree.Tree) and expr.data == "stream_expr":
+            expr = stat.children[0]  # expr
+            if isinstance(expr, lark.tree.Tree) and expr.data == "at_expr":
                 """
                 如果是限定时间的语句...
                 会尝试一直读取值，直到超时或者匹配成功
@@ -237,12 +236,12 @@ class Interpreter:
 
                 # 构造一个TimeControl对象。将这个函数传入构造
                 control = TimeControl(func, *expr.children[0].children)
-                results = [] # 每次读取的值
+                results = []  # 每次读取的值
                 # 预先算出每个case的表达式，不包含silence字句
                 cases = [self.get_expression(case_statment.children[0]) for case_statment in stat.children[1:] if
                          case_statment.data != "slience_stmt"]
                 find_flag = False  # 是否完成匹配
-                finded_case = None # 匹配的是第几个
+                finded_case = None  # 匹配的是第几个
 
                 # 遍历生成器
                 # 如果超时，生成式结束
@@ -251,10 +250,11 @@ class Interpreter:
                     if result is not None:
                         results.append(result)
                     # 如果结果出现在case字句中，那么跳出
-                    if not control.can_exit.is_set():continue
+                    if not control.can_exit.is_set(): continue
                     for i, case in enumerate(cases):
                         concat_result = "".join(results)
-                        if concat_result.find(case) != -1:
+                        is_matched, _ = self._match_value(concat_result,case)
+                        if is_matched:
                             find_flag = True
                             finded_case = i
                             control.cancel()
@@ -271,7 +271,7 @@ class Interpreter:
                         self.exec_statement(st)
             else:
                 expr_result = self.get_expression(expr)
-                for case_statment in stat.children[1:]: # stat.children[0]是bool表达式
+                for case_statment in stat.children[1:]:  # stat.children[0]是bool表达式
                     if case_statment.data == "default_stmt":
                         """
                         如果是默认情况，直接执行这个语句
@@ -287,12 +287,9 @@ class Interpreter:
                         字符串只要包含子串就会执行                        
                         """
                         matching_value = self.get_expression(case_statment.children[0])
-                        is_str = isinstance(matching_value, str)
-                        if is_str  and expr_result.find(matching_value) or not is_str and matching_value ==expr_result:
-                            for st in case_statment.children[1:]:
-                                # 执行块中的每个语句
-                                self.exec_statement(st)
-                            break
+                        is_matched, _ = self._match_value(matching_value, expr_result)
+                        if is_matched:
+                            self.exec_statement(case_statment.children[1])
         elif stat.data == "if_stmt":
             bool_expr = stat.children[0]
             if bool_expr:
@@ -328,8 +325,8 @@ class Interpreter:
                     expr.type == "SIGNED_INT" or expr.type == "SIGNED_FLOAT":
                 # 如果是一些常量，直接返回
                 return expr
-            elif expr.type == "NAME":
-                _context = self.context.names
+            elif expr.type == "NAME" or expr.type == "dollar_var":
+                _context = self.context.names if expr.type == "NAME" else self.context.dollar
                 if (var := _context.get(expr)) is not None:
                     return var
                 else:
@@ -431,6 +428,8 @@ class Interpreter:
                         return func()
                 else:
                     raise SamoyedNameError("No such function")
+            elif expr.data == "reg":
+                return re.compile(expr.children[0].value)
             else:
                 raise NotImplementError
         else:
@@ -461,6 +460,33 @@ class Interpreter:
         except Exception as e:
             raise SamoyedRuntimeError(e.__str__())
         return sum
+
+    def _match_value(self, value1: Union[int, float, bool, None, str],
+                     value2: Union[int, float, bool, None, str, re.Pattern]) -> Tuple[bool, Union[re.Match, None]]:
+        """
+        判断节点的值是否匹配
+        如果是正则匹配会返回匹配结果
+        :param node:
+        :param value1:
+        :return:
+        """
+        if value1 is None and value2 is None: return True,None
+        if value1 is None or value2 is None: return False, None
+        if isinstance(value2, re.Pattern):
+            """
+            如果node是正则表达式
+            """
+            result = value2.match(value1)
+            return result is not None, result
+        else:
+            """
+            否则，先计算出值，直接进行值的比较
+            如果两个对象都是字符串，value2只要是value1的子串即可
+            """
+            if isinstance(value1, str) and isinstance(value2, str):
+                return value1.find(value2) != -1, None
+            else:
+                return value1 == value2, None
 
     compare_operator = {
         ">": gt,
