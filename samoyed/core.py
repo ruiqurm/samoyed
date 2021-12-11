@@ -5,7 +5,7 @@ from functools import reduce
 from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
     , sub, mul, mod, truediv, floordiv
-from typing import Union, Tuple
+from typing import Union, Tuple, Dict
 
 import lark
 from lark import Lark, Transformer
@@ -14,7 +14,7 @@ from lark.indenter import Indenter
 
 from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
     SamoyedNameError, NotImplementError, SamoyedRuntimeError
-from .libs import TimeControl
+from .libs import TimeControl,arg_seq_add,arg_option_add
 
 """
 解释器核心
@@ -61,6 +61,10 @@ class SamoyedTransformer(Transformer):
     true = lambda self, _: True
     false = lambda self, _: False
 
+    def __init__(self):
+        super().__init__()
+        self.dollar = set()  # type: set[str]
+
     def FLOAT(self, value: lark.Token) -> float:
         return float(value)
 
@@ -73,19 +77,30 @@ class SamoyedTransformer(Transformer):
         else:
             return value[1:-1]
 
+    def DOLLAR_VAR(self, value: lark.Token):
+        self.dollar.add(value.value)
+        return value
+
 
 class Context:
     """
     上下文
     """
 
-    def __init__(self, names: dict = None, dollar_names: dict = None):
+    def __init__(self, names: dict = None, dollar_names: Dict[str, str] = None):
         self.names = dict(names) if names is not None else dict()
-        self.dollar = dict(dollar_names) if dollar_names is not None else dict()
+        self.seq_args = []
+        self.option_args = []
+        if dollar_names is not None:
+            for key in dollar_names:
+                if key.startswith("mg"): continue
+                self.names["$" + key] = dollar_names[key]
         self.names["print"] = print
         self.names["speak"] = print
         self.names["listen"] = input
         self.names["exit"] = self.set_exit
+        self.names["arg_seq_add"] = partial(arg_seq_add,self.seq_args)
+        self.names["arg_option_add"] = partial(arg_option_add,self.option_args)
         self.stage = None  # type:lark.tree.Tree
         self.next = None  # type:lark.tree.Tree
         self.__exit = False
@@ -101,25 +116,30 @@ class Interpreter:
     """
     解释器
     """
+    transformer = SamoyedTransformer()
     with open("{}/samoyed.gram".format(os.path.abspath(os.path.dirname(__file__)))) as f:
-        parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=SamoyedTransformer())
+        parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=transformer)
 
-    def __init__(self, code: str, context: dict = None, dont_init=False):
+    def __init__(self, code: Union[str, lark.Tree], context: dict = None, args: dict = None, dont_init=False):
         """
         
-        :param code: 代码
+        :param code: 代码。可以是语法树或者字符串
         :param context: 额外的上下文
         :param dont_init: 不进行初始化 
         """
         self.__isinit = False
         # 词法和语法分析
-        try:
-            self.ast = self.parser.parse(code)  # type:lark.tree.Tree
-        except UnexpectedToken as e:
-            raise SamoyedInterpretError()
-        except UnexpectedCharacters as e:
-            raise SamoyedInterpretError()
-        self.context = Context(context)
+        if isinstance(code, str):
+            try:
+                self.ast = self.parser.parse(code)  # type:lark.tree.Tree
+                self.dollar_symbol = self.transformer.dollar.copy()
+            except UnexpectedToken as e:
+                raise SamoyedInterpretError()
+            except UnexpectedCharacters as e:
+                raise SamoyedInterpretError()
+        else:
+            self.ast = code
+        self.context = Context(names=context, dollar_names=args)
         if not dont_init:
             self.init()
 
@@ -192,7 +212,7 @@ class Interpreter:
 
             elif simple_stmt_type == "assign_expr":
                 # 是一个赋值语句
-                self.context.names[simple_stmt.children[0]] = self.get_expression(simple_stmt.children[2])
+                self.context.names[simple_stmt.children[0].value] = self.get_expression(simple_stmt.children[2])
             elif simple_stmt_type == "pass_expr":
                 return
             else:
@@ -253,11 +273,19 @@ class Interpreter:
                     if not control.can_exit.is_set(): continue
                     for i, case in enumerate(cases):
                         concat_result = "".join(results)
-                        is_matched, _ = self._match_value(concat_result,case)
+                        is_matched, result = self._match_value(concat_result, case)
                         if is_matched:
                             find_flag = True
                             finded_case = i
                             control.cancel()
+                            """
+                            保存匹配的变量
+                            """
+                            if result is not None:
+                                self.context.names["$mg0"] = result.group(0)
+                                for i, group in enumerate(result.groups()):
+                                    self.context.names["$mg{}".format(i + 1)] = group
+                            print(self.context.names)
                             break
                     # 如果匹配，那么执行这个子块
                     if find_flag and control.can_exit.is_set():
@@ -287,9 +315,13 @@ class Interpreter:
                         字符串只要包含子串就会执行                        
                         """
                         matching_value = self.get_expression(case_statment.children[0])
-                        is_matched, _ = self._match_value(matching_value, expr_result)
+                        is_matched, result = self._match_value(matching_value, expr_result)
                         if is_matched:
-                            self.exec_statement(case_statment.children[1])
+                            if result is not None:
+                                self.context.names["$mg0"] = result.group(0)
+                                for i, group in enumerate(result.groups()):
+                                    self.context.names["$mg{}".format(i + 1)] = group
+                                self.exec_statement(case_statment.children[1])
         elif stat.data == "if_stmt":
             bool_expr = stat.children[0]
             if bool_expr:
@@ -325,9 +357,9 @@ class Interpreter:
                     expr.type == "SIGNED_INT" or expr.type == "SIGNED_FLOAT":
                 # 如果是一些常量，直接返回
                 return expr
-            elif expr.type == "NAME" or expr.type == "dollar_var":
-                _context = self.context.names if expr.type == "NAME" else self.context.dollar
-                if (var := _context.get(expr)) is not None:
+            elif expr.type == "NAME" or expr.type == "DOLLAR_VAR":
+                _context = self.context.names
+                if (var := _context.get(expr.value)) is not None:
                     return var
                 else:
                     raise SamoyedNameError("No such variable")
@@ -470,7 +502,7 @@ class Interpreter:
         :param value1:
         :return:
         """
-        if value1 is None and value2 is None: return True,None
+        if value1 is None and value2 is None: return True, None
         if value1 is None or value2 is None: return False, None
         if isinstance(value2, re.Pattern):
             """
@@ -504,3 +536,18 @@ class Interpreter:
         "//": floordiv,
         "%": mod
     }
+
+
+with open("{}/compile_template.py".format(os.path.abspath(os.path.dirname(__file__)))) as file:
+    template = file.read()
+
+
+def compile(code: str, output_file: str):
+    """
+    编译
+    """
+    i = Interpreter(code)
+    with open(output_file, "w", encoding="utf-8") as file:
+        file.write(template.format(pos_arg = i.context.seq_args,
+                                   option_arg= i.context.option_args,
+                                   ast=i.ast))

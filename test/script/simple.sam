@@ -1,10 +1,9 @@
-名字 = "测试"
 剩余金额 = 100
-#listen << pipe("test_in")
-#speak  >> pipe("test_out")
-# optioanl($name,$ss)
+arg_seq_add("名字","用户名") # 可以用$1或者$名字调用
+arg_seq_add("剩余金额","用户剩余金额")# $2或者$剩余金额调用
+arg_option_add("测试","t")
 state main:
-    speak(名字 + "，请问有什么可以帮您")
+    speak($名字 + "，请问有什么可以帮您")
     match @(5,2)listen():
          /投诉(.*)/ =>
             branch compain

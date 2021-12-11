@@ -47,9 +47,9 @@ conditional_expr:or_test "?" or_test ":" _full_expr
           | "true" -> true
           | "false" -> false
           | NAME "(" [parameters] ")" -> funccall
-          | "$" NAME -> dollar_var
+          | DOLLAR_VAR
 STR : (STRING | LONG_STRING)+
-
+DOLLAR_VAR : "$" NAME
 CN_ZH_LETTER: /[\u4e00-\u9fa5]/
 LETTER: UCASE_LETTER | LCASE_LETTER | CN_ZH_LETTER
 NAME : ("_"|LETTER) ("_"|LETTER|DIGIT)*

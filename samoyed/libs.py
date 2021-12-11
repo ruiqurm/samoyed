@@ -77,53 +77,48 @@ class TimeControl:
 
 
 import argparse
-def make_arg_parser(pos_arg: List[str],
-                    explain_pos: List[str] = None,
-                    options: List[Union[str, Tuple[str,str], ]] = None,
-                    explain_options: List[str] = None,
-                    helping_message:str = None):
-    """
-    :param pos_arg: 位置参数个数
-    :param explain_pos: 解释各个位置参数
-    :param options: 选项参数
-    :param explain_options: 解释各个选项参数
-    :param helping_message: 帮助信息
-    :return:
-    """
-    parser = argparse.ArgumentParser(description='自动客服脚本\n{}'.format("" if helping_message is None else helping_message))
+
+
+def make_arg_parser(pos_arg: List[Tuple[str, Union[str, None]]] = None,
+                    option_arg: List[Tuple[str, Union[str, None], Union[str, None]]] = None,
+                    helping_message: str = None):
+    parser = argparse.ArgumentParser(
+        description='自动客服脚本\n{}'.format("" if helping_message is None else helping_message))
 
     """
     给顺序参数添加
     """
-    if explain_pos is not None and len(explain_pos)!=len(pos_arg):
-        raise Exception("个数不同")
-    if explain_pos is not None:
-      for arg,help_msg in zip(pos_arg,explain_pos):
-            parser.add_argument(arg,nargs=1,help=help_msg)
-    else:
+    if pos_arg is not None:
         for arg in pos_arg:
-            parser.add_argument(arg, nargs=1,)
+            # arg = (描述，帮助信息)
+            parser.add_argument(arg[0], help=arg[1], nargs=1)
 
     """
     给关键词参数添加
     """
-    if options is not None:
-        if explain_options is not None and len(options)!=len(explain_options):
-            raise Exception("个数不同")
-        if explain_options is not None:
-          for arg,help_msg in zip(options,explain_options):
-            if isinstance(arg,str):
-                parser.add_argument("-"+arg,nargs=1,help=help_msg)
-            elif isinstance(arg,tuple):
-                parser.add_argument("-"+arg[0],"--"+arg[1], nargs=1, help=help_msg)
-        else:
-            for arg in options:
-                if isinstance(arg, str):
-                    parser.add_argument("-" + arg, nargs=1)
-                elif isinstance(arg, tuple):
-                    parser.add_argument("-" + arg[0], "--" + arg[1], nargs=1)
+    if option_arg is not None:
+        for arg in option_arg:
+            # arg = (全称，简写，帮助信息)
+            if arg[1] is not None:
+                parser.add_argument("--" + arg[0], nargs=1, help=arg[2])
+            else:
+                parser.add_argument("--" + arg[0],"-"+arg[1], nargs=1, help=arg[2])
     return parser
 
+
+def arg_seq_add(l: List[Tuple[str, Union[str, None]]], name: str, help_msg: str = None):
+    """
+    添加顺序参数
+    """
+    l.append((name, help_msg))
+
+
+def arg_option_add(l: List[Tuple[str, Union[str, None], Union[str, None]]], full_name: str, shortcut: str = None,
+                   help_msg: str = None):
+    """
+    添加可选参数
+    """
+    l.append((full_name, shortcut, help_msg))
 # result = []
 # t = TimeControl(input,30)
 # for i in t():
