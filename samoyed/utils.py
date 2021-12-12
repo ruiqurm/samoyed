@@ -4,7 +4,7 @@ import platform
 import signal
 from functools import partial,wraps
 from typing import Callable
-
+from .exception import SamoyedTimeout
 if platform.system() == 'Linux':
     import pathlib
 
@@ -23,7 +23,7 @@ def watchdog(seconds=0.1):
 
     def decorator(func):
         def _handle_timeout(signum, frame):
-            raise Exception(f"Timeout for function '{func.__name__}'")
+            raise SamoyedTimeout(f"Timeout for function '{func.__name__}'")
 
         def wrapper(*args, **kwargs):
             signal.signal(signal.SIGALRM, _handle_timeout)

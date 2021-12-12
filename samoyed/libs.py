@@ -4,9 +4,10 @@
 import threading
 import time
 from typing import List, Union, Tuple
-
+from numbers import Number
+import argparse
 from .utils import watchdog
-
+from .exception import SamoyedTimeout,SamoyedRuntimeError
 """
 延迟流
 """
@@ -30,7 +31,18 @@ class TimeControl:
 
     def __call__(self, *args, **kwargs):
         """
-        生成流
+
+        Parameters
+        ----------
+        args
+        kwargs
+
+        Returns
+        -------
+
+        Raises
+        ------
+        `SamoyedRuntimeError` : 函数运行出错时抛出
         """
         # 启动两个计时函数
         self.timeout.clear()
@@ -50,8 +62,10 @@ class TimeControl:
         while True:
             try:
                 result = timeout_on_interval(*args, **kwargs)
-            except Exception:
+            except SamoyedTimeout:
                 yield None
+            except Exception as e:
+                raise SamoyedRuntimeError(str(e))
             else:
                 yield result
             if self.timeout.is_set():
@@ -76,7 +90,7 @@ class TimeControl:
             event.set()
 
 
-import argparse
+
 
 
 def make_arg_parser(pos_arg: List[Tuple[str, Union[str, None]]] = None,
@@ -119,6 +133,18 @@ def arg_option_add(l: List[Tuple[str, Union[str, None], Union[str, None]]], full
     添加可选参数
     """
     l.append((full_name, shortcut, help_msg))
+
+def mock_add(a: Union[int, float, bool, str, None], b: Union[int, float, bool, str, None]) -> Union[
+    int, float, str, None]:
+    """
+    实现字符串和数字相加操作的add
+    """
+    if isinstance(a, Number) and isinstance(b, Number):
+        return a + b
+    elif isinstance(a, str) or isinstance(b, str):
+        return "{}{}".format(a, b)
+    else:
+        return None
 # result = []
 # t = TimeControl(input,30)
 # for i in t():

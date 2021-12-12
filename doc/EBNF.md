@@ -1,2 +1,1 @@
-Welcome to samoyed's documentation!
-===================================
+# Hello

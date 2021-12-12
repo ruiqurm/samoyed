@@ -9,36 +9,16 @@ from typing import Union, Tuple, Dict
 
 import lark
 from lark import Lark, Transformer
-from lark.exceptions import UnexpectedToken, UnexpectedCharacters
+from lark.exceptions import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 from lark.indenter import Indenter
 
-from .exception import SamoyedTypeError, SamoyedInterpretError, NotFoundEntrance, \
-    SamoyedNameError, NotImplementError, SamoyedRuntimeError
-from .libs import TimeControl,arg_seq_add,arg_option_add
+from .exception import SamoyedTypeError, SamoyedInterpretError, SamoyedNotFoundEntrance, \
+    SamoyedNameError, SamoyedNotImplementError, SamoyedRuntimeError,SamoyedSyntaxError
+from .libs import TimeControl, arg_seq_add, arg_option_add, mock_add
 
 """
 解释器核心
 """
-
-
-# class Stage:
-#     """
-#     DFA状态
-#     """
-#
-#     def __init__(self, ast: lark.tree.Tree):
-#         self.ast = ast
-def mock_add(a: Union[int, float, bool, str, None], b: Union[int, float, bool, str, None]) -> Union[
-    int, float, str, None]:
-    """
-    实现字符串和数字相加操作的add
-    """
-    if isinstance(a, Number) and isinstance(b, Number):
-        return a + b
-    elif isinstance(a, str) or isinstance(b, str):
-        return "{}{}".format(a, b)
-    else:
-        return None
 
 
 class SamoyedIndenter(Indenter):
@@ -85,47 +65,84 @@ class SamoyedTransformer(Transformer):
 class Context:
     """
     上下文
+    包括
     """
 
     def __init__(self, names: dict = None, dollar_names: Dict[str, str] = None):
+        """
+        Notes
+        ---------
+            如果dollar_names包含名字叫mg的方法会被过滤掉
+
+        Parameters
+        ----------
+        names
+            外部传入的变量表
+        dollar_names
+            传入的参数
+        """
         self.names = dict(names) if names is not None else dict()
         self.seq_args = []
         self.option_args = []
+
+        # 给外部传入的属性加上$
         if dollar_names is not None:
             for key in dollar_names:
                 if key.startswith("mg"): continue
                 self.names["$" + key] = dollar_names[key]
+
+        # 绑定内置函数
         self.names["print"] = print
         self.names["speak"] = print
         self.names["listen"] = input
         self.names["exit"] = self.set_exit
-        self.names["arg_seq_add"] = partial(arg_seq_add,self.seq_args)
-        self.names["arg_option_add"] = partial(arg_option_add,self.option_args)
+        self.names["arg_seq_add"] = partial(arg_seq_add, self.seq_args)
+        self.names["arg_option_add"] = partial(arg_option_add, self.option_args)
         self.stage = None  # type:lark.tree.Tree
         self.next = None  # type:lark.tree.Tree
+
         self.__exit = False
 
-    def is_exit(self):
+    def is_exit(self) -> bool:
+        """
+        判断当前程序是否已经退出
+        Returns
+        -------
+        bool
+            当前程序是否已经退出
+        """
         return self.__exit
 
     def set_exit(self):
+        """
+        设置当前程序退出
+        Returns
+        -------
+        None
+        """
         self.__exit = True
 
 
 class Interpreter:
+    """解释器
+
     """
-    解释器
-    """
+
+    # 语法制导。用于构件AST时转换一些常量
     transformer = SamoyedTransformer()
+
+    # 读取文法
     with open("{}/samoyed.gram".format(os.path.abspath(os.path.dirname(__file__)))) as f:
         parser = Lark(f.read(), parser='lalr', postlex=SamoyedIndenter(), transformer=transformer)
 
     def __init__(self, code: Union[str, lark.Tree], context: dict = None, args: dict = None, dont_init=False):
         """
-        
-        :param code: 代码。可以是语法树或者字符串
-        :param context: 额外的上下文
-        :param dont_init: 不进行初始化 
+        Parameters
+        ----------
+        code
+        context
+        args
+        dont_init
         """
         self.__isinit = False
         # 词法和语法分析
@@ -133,10 +150,8 @@ class Interpreter:
             try:
                 self.ast = self.parser.parse(code)  # type:lark.tree.Tree
                 self.dollar_symbol = self.transformer.dollar.copy()
-            except UnexpectedToken as e:
-                raise SamoyedInterpretError()
-            except UnexpectedCharacters as e:
-                raise SamoyedInterpretError()
+            except (UnexpectedEOF,UnexpectedToken) as e:
+                raise SamoyedSyntaxError(e.expected,e.token,pos=(e.line, e.column))
         else:
             self.ast = code
         self.context = Context(names=context, dollar_names=args)
@@ -159,7 +174,7 @@ class Interpreter:
             else:
                 self.exec_statement(node)
         if self.entrance is None:
-            raise NotFoundEntrance
+            raise SamoyedNotFoundEntrance
 
         self.context.stage = self.entrance
         self.__isinit = True
@@ -250,6 +265,7 @@ class Interpreter:
                 if (func := _context.get(expr.children[1], None)) is not None and callable(func):
                     if expr.children[2] is not None:
                         # 如果有参数
+                        assert expr.children[2] < expr.children[1]
                         func = partial(func, *[self.get_expression(i) for i in expr.children[2].children])
                 else:
                     raise SamoyedNameError("No such function")
@@ -285,7 +301,6 @@ class Interpreter:
                                 self.context.names["$mg0"] = result.group(0)
                                 for i, group in enumerate(result.groups()):
                                     self.context.names["$mg{}".format(i + 1)] = group
-                            print(self.context.names)
                             break
                     # 如果匹配，那么执行这个子块
                     if find_flag and control.can_exit.is_set():
@@ -329,7 +344,7 @@ class Interpreter:
             else:
                 self.exec_statement(stat.children[2])
         else:
-            raise NotImplementError
+            raise SamoyedNotImplementError
 
     def get_expression(self, expr: Union[lark.tree.Tree, lark.lexer.Token, Number, str],
                        dont_compute: bool = False) \
@@ -453,19 +468,23 @@ class Interpreter:
                 """
                 _context = self.context.names
                 if (func := _context.get(expr.children[0], None)) is not None and callable(func):
-                    if expr.children[1] is not None:
-                        # 如果有参数
-                        return func(*[self.get_expression(i) for i in expr.children[1].children])
-                    else:
-                        return func()
+                    try:
+                        if expr.children[1] is not None:
+                            # 如果有参数
+                            return func(*[self.get_expression(i) for i in expr.children[1].children])
+                        else:
+                            return func()
+                    except Exception as e:
+                        # 函数可能会崩溃
+                        raise SamoyedRuntimeError(str(e))
                 else:
                     raise SamoyedNameError("No such function")
             elif expr.data == "reg":
                 return re.compile(expr.children[0].value)
             else:
-                raise NotImplementError
+                raise SamoyedNotImplementError
         else:
-            raise NotImplementError
+            raise SamoyedNotImplementError
 
     @staticmethod
     def reduce(l: list):
@@ -536,18 +555,3 @@ class Interpreter:
         "//": floordiv,
         "%": mod
     }
-
-
-with open("{}/compile_template.py".format(os.path.abspath(os.path.dirname(__file__)))) as file:
-    template = file.read()
-
-
-def compile(code: str, output_file: str):
-    """
-    编译
-    """
-    i = Interpreter(code)
-    with open(output_file, "w", encoding="utf-8") as file:
-        file.write(template.format(pos_arg = i.context.seq_args,
-                                   option_arg= i.context.option_args,
-                                   ast=i.ast))
