@@ -1,20 +1,20 @@
 import os
 import re
+import sqlite3
 from functools import partial
 from functools import reduce
 from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
     , sub, mul, mod, truediv, floordiv
-from typing import Union, Tuple, Dict
+from typing import Union, Dict
 
 import lark
 from lark import Lark, Transformer
-from lark.exceptions import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
+from lark.exceptions import UnexpectedToken, UnexpectedEOF
 from lark.indenter import Indenter
 
-from .exception import SamoyedTypeError, SamoyedInterpretError, SamoyedNotFoundEntrance, \
-    SamoyedNameError, SamoyedNotImplementError, SamoyedRuntimeError,SamoyedSyntaxError
-from .libs import TimeControl, arg_seq_add, arg_option_add, mock_add
+from .exception import *
+from .libs import TimeControl, arg_seq_add, arg_option_add, mock_add, sqlite, sqlite_connect
 
 """
 解释器核心
@@ -100,8 +100,13 @@ class Context:
         self.names["arg_option_add"] = partial(arg_option_add, self.option_args)
         self.stage = None  # type:lark.tree.Tree
         self.next = None  # type:lark.tree.Tree
-
+        self.conn2curosr = {}  # type:Dict[sqlite3.Cursor,sqlite3.Connection]
+        self.names["sqlite_connect"] = partial(sqlite_connect, self.conn2curosr)
+        self.names["sqlite"] = partial(sqlite,self.conn2curosr)
+        self.names["eval"] = lambda str: eval(str, self.names)
         self.__exit = False
+
+
 
     def is_exit(self) -> bool:
         """
@@ -150,8 +155,8 @@ class Interpreter:
             try:
                 self.ast = self.parser.parse(code)  # type:lark.tree.Tree
                 self.dollar_symbol = self.transformer.dollar.copy()
-            except (UnexpectedEOF,UnexpectedToken) as e:
-                raise SamoyedSyntaxError(e.expected,e.token,pos=(e.line, e.column))
+            except (UnexpectedEOF, UnexpectedToken) as e:
+                raise SamoyedSyntaxError(e.expected, e.token, pos=(e.line, e.column))
         else:
             self.ast = code
         self.context = Context(names=context, dollar_names=args)
@@ -332,11 +337,12 @@ class Interpreter:
                         matching_value = self.get_expression(case_statment.children[0])
                         is_matched, result = self._match_value(matching_value, expr_result)
                         if is_matched:
+                            self.exec_statement(case_statment.children[1])
                             if result is not None:
                                 self.context.names["$mg0"] = result.group(0)
                                 for i, group in enumerate(result.groups()):
                                     self.context.names["$mg{}".format(i + 1)] = group
-                                self.exec_statement(case_statment.children[1])
+                            break
         elif stat.data == "if_stmt":
             bool_expr = stat.children[0]
             if bool_expr:
@@ -507,7 +513,7 @@ class Interpreter:
                 sum = op(sum, operand2)
         except TypeError:
             # 出现字符串加数字等类型错误
-            raise SamoyedTypeError("{}和{}无法做{}运算", type(sum), type(operand2), op)
+            raise SamoyedTypeError("{}和{}无法做{}运算".format(type(sum), type(operand2), op))
         except Exception as e:
             raise SamoyedRuntimeError(e.__str__())
         return sum

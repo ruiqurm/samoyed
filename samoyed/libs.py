@@ -1,13 +1,16 @@
 """
 内置函数
 """
+import argparse
+import sqlite3
 import threading
 import time
-from typing import List, Union, Tuple
 from numbers import Number
-import argparse
+from typing import List, Union, Tuple,Dict
+
+from .exception import SamoyedTimeout, SamoyedRuntimeError
 from .utils import watchdog
-from .exception import SamoyedTimeout,SamoyedRuntimeError
+
 """
 延迟流
 """
@@ -90,9 +93,6 @@ class TimeControl:
             event.set()
 
 
-
-
-
 def make_arg_parser(pos_arg: List[Tuple[str, Union[str, None]]] = None,
                     option_arg: List[Tuple[str, Union[str, None], Union[str, None]]] = None,
                     helping_message: str = None):
@@ -116,7 +116,7 @@ def make_arg_parser(pos_arg: List[Tuple[str, Union[str, None]]] = None,
             if arg[1] is not None:
                 parser.add_argument("--" + arg[0], nargs=1, help=arg[2])
             else:
-                parser.add_argument("--" + arg[0],"-"+arg[1], nargs=1, help=arg[2])
+                parser.add_argument("--" + arg[0], "-" + arg[1], nargs=1, help=arg[2])
     return parser
 
 
@@ -134,6 +134,7 @@ def arg_option_add(l: List[Tuple[str, Union[str, None], Union[str, None]]], full
     """
     l.append((full_name, shortcut, help_msg))
 
+
 def mock_add(a: Union[int, float, bool, str, None], b: Union[int, float, bool, str, None]) -> Union[
     int, float, str, None]:
     """
@@ -145,6 +146,20 @@ def mock_add(a: Union[int, float, bool, str, None], b: Union[int, float, bool, s
         return "{}{}".format(a, b)
     else:
         return None
+
+
+def sqlite_connect(conn2curosr:Dict[sqlite3.Cursor,sqlite3.Connection],db_name: str) -> sqlite3.Cursor:
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    conn2curosr[cursor] = conn
+    return cursor
+
+
+def sqlite(conn2curosr:Dict[sqlite3.Cursor,sqlite3.Connection],cursor: sqlite3.Cursor, sql: str) -> str:
+    cursor.execute(sql)
+    conn2curosr[cursor].commit()
+    return str(cursor.fetchall())
+
 # result = []
 # t = TimeControl(input,30)
 # for i in t():

@@ -8,7 +8,8 @@ class SamoyedException(Exception):
     错误基类
     """
 
-    def __init__(self, message: str, pos: Tuple[int, int] = None):
+    def __init__(self, message: str=None, pos: Tuple[int, int] = None):
+        message = message or ""
         if pos:
             super().__init__("line {},column {}:{}".format(pos[0], pos[1], message))
         else:

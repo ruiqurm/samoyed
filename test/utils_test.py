@@ -12,14 +12,6 @@ class UtilsTest(unittest.TestCase):
             self.assertEqual(fcntl.fcntl(fd,FLAG_GET_PIPE_BUFFER_SIZE),8192*8)
         finally:
             delete_pipe("/tmp/test_pipe")
-    def test_read_pipe(self):
-        try:
-            # make_pipe("/tmp/test_pipe1")
-            r = get_pipe_read_end("/tmp/test_pipe1")
-            # subprocess.run(["echo","hello world",">","/tmp/test_pipe1"])
-            result = r(5)
-            print(result)
-        finally:
-            delete_pipe("/tmp/test_pipe1")
+
 if __name__ == '__main__':
     unittest.main()
