@@ -85,6 +85,7 @@ class Context:
         self.seq_args = []
         self.option_args = []
 
+        self.names["$PWD"] = os.getcwd()
         # 给外部传入的属性加上$
         if dollar_names is not None:
             for key in dollar_names:
@@ -273,7 +274,7 @@ class Interpreter:
                         assert expr.children[2] < expr.children[1]
                         func = partial(func, *[self.get_expression(i) for i in expr.children[2].children])
                 else:
-                    raise SamoyedNameError("No such function")
+                    raise SamoyedNameError("No such function {}".format(expr.children[1]))
 
                 # 构造一个TimeControl对象。将这个函数传入构造
                 control = TimeControl(func, *expr.children[0].children)
@@ -383,7 +384,7 @@ class Interpreter:
                 if (var := _context.get(expr.value)) is not None:
                     return var
                 else:
-                    raise SamoyedNameError("No such variable")
+                    raise SamoyedNameError("No such variable {}".format(expr.value))
             else:
                 raise SamoyedInterpretError(expr.type, pos=(expr.line, expr.column))
         elif isinstance(expr, Number) or isinstance(expr, str) or expr is None:
@@ -484,7 +485,7 @@ class Interpreter:
                         # 函数可能会崩溃
                         raise SamoyedRuntimeError(str(e))
                 else:
-                    raise SamoyedNameError("No such function")
+                    raise SamoyedNameError("No such function {}".format(expr.children[0]))
             elif expr.data == "reg":
                 return re.compile(expr.children[0].value)
             else:

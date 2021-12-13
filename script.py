@@ -22,7 +22,6 @@ def samoyed_compile(source_file: str, output_file: str) -> None:
     with open(source_file, "r", encoding="utf-8") as file:
         src = file.read()
     i = Interpreter(src)
-    print(output_file)
     with open(output_file, "w", encoding="utf-8") as file:
         file.write(template.format(pos_arg=i.context.seq_args,
                                    option_arg=i.context.option_args,
@@ -39,8 +38,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.mode[0] == "run":
         with open(args.source[0], "r", encoding="utf-8") as f:
-            i = Interpreter(f.read())
+            i = Interpreter(f.read(), args={"PWD": os.getcwd()})
         i.exec()
     else:
         # mode == gen
-        samoyed_compile(args.source[0], args.source[0] + ".py" if args.output is None else args.output[0])
+        if args.output is None:
+            out = "{}/{}.py".format(os.getcwd(),args.source[0].split("/")[-1])
+        else:
+            out = args.output[0]
+        samoyed_compile(args.source[0],out)
