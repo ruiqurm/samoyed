@@ -14,7 +14,9 @@ case_stmt:  [_full_expr | reg]  "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | [_fu
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "default" "=>" branch_expr
 slience_stmt : "slience" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "slience" "=>" branch_expr
 for_stmt : "for" NAME "=" _full_expr "to" _full_expr  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
-if_stmt : "if" _full_expr ":" _NEWLINE _INDENT inner_stmt+ _DEDENT ("else" ":" _NEWLINE _INDENT inner_stmt+ _DEDENT)?
+if_stmt : "if" _full_expr ":" _NEWLINE _INDENT if_true_stmt _DEDENT ("else" ":" _NEWLINE _INDENT else_true_stmt+ _DEDENT)?
+if_true_stmt : inner_stmt+
+else_true_stmt : inner_stmt+
 pass_expr : "pass"
 branch_expr : "branch" NAME
 continue_stmt : "continue"

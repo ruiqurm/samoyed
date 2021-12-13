@@ -345,11 +345,13 @@ class Interpreter:
                                     self.context.names["$mg{}".format(i + 1)] = group
                             break
         elif stat.data == "if_stmt":
-            bool_expr = stat.children[0]
+            bool_expr = bool(self.get_expression(stat.children[0]))
             if bool_expr:
-                self.exec_statement(stat.children[1])
-            else:
-                self.exec_statement(stat.children[2])
+                for stmt in stat.children[1].children:
+                    self.exec_statement(stmt)
+            elif len(stat.children) == 3:
+                for stmt in stat.children[2].children:
+                    self.exec_statement(stmt)
         else:
             raise SamoyedNotImplementError
 

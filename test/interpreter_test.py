@@ -8,7 +8,7 @@ from queue import Queue
 from threading import Thread
 from typing import Callable
 
-from lark import Token, Tree
+from lark import Tree
 
 from samoyed.core import Interpreter, Context, mock_add
 from samoyed.exception import *
@@ -192,48 +192,42 @@ class InterpreterTest(unittest.TestCase):
 
         # 测试if语句
         """
-        if true:
-            x = x + 1
-        else:
-            x = 0
+if true:
+    x = x + 1
+else:
+    x = 0
         """
         context.names["x"] = 3
-        s = Tree(Token('RULE', 'if_stmt'), [True, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                                           [Token('NAME', 'x'),
-                                                                                            Tree(Token('RULE',
-                                                                                                       'assign_op'),
-                                                                                                 [Token('EQUAL', '=')]),
-                                                                                            Tree(Token('RULE',
-                                                                                                       'plus_expr'),
-                                                                                                 [Token('NAME', 'x'),
-                                                                                                  Tree(
-                                                                                                      Token('RULE',
-                                                                                                            'add_op'),
-                                                                                                      [Token('PLUS',
-                                                                                                             '+')]),
-                                                                                                  1])])]),
-                                            Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                                     [Token('NAME', 'x'),
-                                                                                      Tree(Token('RULE', 'assign_op'),
-                                                                                           [Token('EQUAL', '=')]),
-                                                                                      0])])])
+        s = Tree(Token('RULE', 'if_stmt'), [True, Tree(Token('RULE', 'if_true_stmt'), [
+            Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'x'),
+                                                                                    Tree(Token('RULE', 'assign_op'),
+                                                                                         [Token('EQUAL', '=')]),
+                                                                                    Tree(Token('RULE', 'plus_expr'),
+                                                                                         [Token('NAME', 'x'),
+                                                                                          Tree(Token('RULE', 'add_op'),
+                                                                                               [Token('PLUS', '+')]),
+                                                                                          1])])])]),
+                                            Tree(Token('RULE', 'else_true_stmt'), [Tree(Token('RULE', 'simple_stmt'), [
+                                                Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'x'),
+                                                                                    Tree(Token('RULE', 'assign_op'),
+                                                                                         [Token('EQUAL', '=')]),
+                                                                                    0])])])])
         dumb_interpreter.exec_statement(s)
         self.assertEqual(4, context.names["x"])
-        s2 = Tree(Token('RULE', 'if_stmt'),
-                  [False, Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                                   [Token('NAME', 'x'),
-                                                                    Tree(Token('RULE', 'assign_op'),
-                                                                         [Token('EQUAL', '=')]),
-                                                                    Tree(Token('RULE', 'plus_expr'),
-                                                                         [Token('NAME', 'x'), Tree(
-                                                                             Token('RULE',
-                                                                                   'add_op'),
-                                                                             [Token('PLUS', '+')]),
-                                                                          1])])]),
-                   Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'),
-                                                            [Token('NAME', 'x'),
-                                                             Tree(Token('RULE', 'assign_op'),
-                                                                  [Token('EQUAL', '=')]), 0])])])
+        s2 = Tree(Token('RULE', 'if_stmt'), [False, Tree(Token('RULE', 'if_true_stmt'), [
+            Tree(Token('RULE', 'simple_stmt'), [Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'x'),
+                                                                                    Tree(Token('RULE', 'assign_op'),
+                                                                                         [Token('EQUAL', '=')]),
+                                                                                    Tree(Token('RULE', 'plus_expr'),
+                                                                                         [Token('NAME', 'x'),
+                                                                                          Tree(Token('RULE', 'add_op'),
+                                                                                               [Token('PLUS', '+')]),
+                                                                                          1])])])]),
+                                            Tree(Token('RULE', 'else_true_stmt'), [Tree(Token('RULE', 'simple_stmt'), [
+                                                Tree(Token('RULE', 'assign_expr'), [Token('NAME', 'x'),
+                                                                                    Tree(Token('RULE', 'assign_op'),
+                                                                                         [Token('EQUAL', '=')]),
+                                                                                    0])])])])
         dumb_interpreter.exec_statement(s2)
         self.assertEqual(0, context.names["x"])
 
@@ -479,7 +473,8 @@ class InterpreterTest(unittest.TestCase):
                                                              [Tree(Token('RULE', 'at_expr_parameter'), [2]),
                                                               Token('NAME', 'listen'), None]),
                                                         Tree(Token('RULE', 'case_stmt'),
-                                                             [Tree(Token('RULE', 'reg'), [Token('__ANON_8', '.*投诉(.*)')]),
+                                                             [Tree(Token('RULE', 'reg'),
+                                                                   [Token('__ANON_8', '.*投诉(.*)')]),
                                                               Tree(Token('RULE', 'simple_stmt'), [
                                                                   Tree(Token('RULE', 'assign_expr'),
                                                                        [Token('NAME', 's'),
@@ -548,6 +543,7 @@ class InterpreterTest(unittest.TestCase):
         self.assertEqual("账单", context.names["s"])
         thread.join()
         print("pass")
+
 
 if __name__ == "__main__":
     unittest.main()

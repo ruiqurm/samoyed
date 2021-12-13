@@ -225,8 +225,8 @@ state hello:
         stmt = i.ast.children[0].children[1]
         self.assertEqual(3,len(stmt.children))# bool表达式，if字句，else字句
         self.assertEqual("compare_expr",stmt.children[0].data)
-        self.assertEqual("simple_stmt",stmt.children[1].data)
-        self.assertEqual("simple_stmt",stmt.children[2].data)
+        self.assertEqual("if_true_stmt",stmt.children[1].data)
+        self.assertEqual("else_true_stmt",stmt.children[2].data)
 
         # 嵌套if
         test_code = \
@@ -242,11 +242,12 @@ state hello:
         stmt = i.ast.children[0].children[1]
         self.assertEqual(3,len(stmt.children))# bool表达式，if字句，else字句
         self.assertEqual("compare_expr",stmt.children[0].data)
-        self.assertEqual("simple_stmt",stmt.children[1].data)
-        self.assertEqual("if_stmt",stmt.children[2].data)
-        self.assertEqual(2,len(stmt.children[2].children))# bool表达式，if字句
-        self.assertEqual("compare_expr",stmt.children[2].children[0].data)
-        self.assertEqual("simple_stmt",stmt.children[2].children[1].data)
+        self.assertEqual("if_true_stmt",stmt.children[1].data)
+        self.assertEqual("else_true_stmt",stmt.children[2].data)
+        self.assertEqual("if_stmt", stmt.children[2].children[0].data)
+        # self.assertEqual(2,len(stmt.children[2].children))# bool表达式，if字句
+        # self.assertEqual("compare_expr",stmt.children[2].children[0].data)
+        # self.assertEqual("simple_stmt",stmt.children[2].children[1].data)
 
     def test_func(self):
         i = Interpreter("hello()\n", dont_init=True)
