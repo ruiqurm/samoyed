@@ -1,0 +1,651 @@
+
+<!DOCTYPE html>
+
+<html lang="zh_CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test.interpreter_test &#8212; samoyed  文档</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>test.interpreter_test 源代码</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">解释器测试</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">add</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">truediv</span><span class="p">,</span> <span class="n">mod</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+
+<span class="kn">from</span> <span class="nn">lark</span> <span class="kn">import</span> <span class="n">Token</span><span class="p">,</span> <span class="n">Tree</span>
+
+<span class="kn">from</span> <span class="nn">samoyed.core</span> <span class="kn">import</span> <span class="n">Interpreter</span><span class="p">,</span> <span class="n">Context</span><span class="p">,</span> <span class="n">mock_add</span>
+<span class="kn">from</span> <span class="nn">samoyed.exception</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">test.libs_test</span> <span class="kn">import</span> <span class="n">mock_input</span>
+
+
+<div class="viewcode-block" id="InterpreterTest"><a class="viewcode-back" href="../../source/test.html#test.interpreter_test.InterpreterTest">[文档]</a><span class="k">class</span> <span class="nc">InterpreterTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="InterpreterTest.test_reduce"><a class="viewcode-back" href="../../source/test.html#test.interpreter_test.InterpreterTest.test_reduce">[文档]</a>    <span class="k">def</span> <span class="nf">test_reduce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        测试reduce函数是否正确</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">//</span> <span class="mi">5</span><span class="p">,</span> <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">truediv</span><span class="p">,</span> <span class="mi">5</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">%</span> <span class="mi">5</span><span class="p">,</span> <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">mod</span><span class="p">,</span> <span class="mi">5</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;hello &quot;</span> <span class="o">+</span> <span class="s2">&quot;world&quot;</span> <span class="o">+</span> <span class="s2">&quot;!&quot;</span><span class="p">,</span> <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="s2">&quot;hello &quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="s2">&quot;!&quot;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;asdasd1&quot;</span><span class="p">,</span> <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="s2">&quot;asdasd&quot;</span><span class="p">,</span> <span class="n">mock_add</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">SamoyedException</span><span class="p">):</span>
+            <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="s2">&quot;adssad&quot;</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="s2">&quot;asdasd&quot;</span><span class="p">])</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">SamoyedException</span><span class="p">):</span>
+            <span class="n">Interpreter</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">truediv</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="InterpreterTest.test_get_expr"><a class="viewcode-back" href="../../source/test.html#test.interpreter_test.InterpreterTest.test_get_expr">[文档]</a>    <span class="k">def</span> <span class="nf">test_get_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        测试计算表达式是否正确</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 哑解释器不需要内容，只需要计算即可</span>
+        <span class="n">dumb_interpreter</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dont_init</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="c1"># 测试常量</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="mf">3.14</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+
+        <span class="c1"># 测试变量</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)))</span>
+
+        <span class="c1"># 测试函数</span>
+        <span class="c1"># 返回1的过程</span>
+        <span class="n">func1</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;funccall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;hello&#39;</span><span class="p">),</span> <span class="kc">None</span><span class="p">])</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;hello&quot;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">func1</span><span class="p">))</span>
+        <span class="c1"># 返回x+1的函数</span>
+        <span class="n">func2</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;funccall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;hello&#39;</span><span class="p">),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;hello&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">func2</span><span class="p">))</span>
+        <span class="c1"># 返回x+y的函数</span>
+        <span class="n">func3</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;funccall&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;hello&#39;</span><span class="p">),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])])</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;hello&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">func3</span><span class="p">))</span>
+
+        <span class="c1"># 测试factor</span>
+        <span class="n">factor1</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;factor&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;MINUS&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)])</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">factor1</span><span class="p">))</span>
+        <span class="n">factor2</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;factor&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;MINUS&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">factor2</span><span class="p">))</span>
+        <span class="n">factor3</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;factor&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;MINUS&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">factor3</span><span class="p">))</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">SamoyedException</span><span class="p">):</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;factor&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;MINUS&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="s2">&quot;asddsa&quot;</span><span class="p">])</span>
+            <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+
+        <span class="c1"># 测试plus_expr表达式</span>
+        <span class="n">plus</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">plus</span><span class="p">))</span>
+        <span class="c1"># 支持和字符串拼接，虽然看起来会很怪异</span>
+        <span class="n">plus</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">,</span>
+                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="s2">&quot;asd&quot;</span><span class="p">],</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;2asd&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">plus</span><span class="p">))</span>
+        <span class="n">plus</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mf">3.4</span><span class="p">,</span>
+                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="s2">&quot;asd&quot;</span><span class="p">],</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;hello3.4asd&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">plus</span><span class="p">))</span>
+
+        <span class="c1"># 测试变量加法</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">plus</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="s2">&quot;world&quot;</span><span class="p">],</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;1world&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">plus</span><span class="p">))</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="s2">&quot;hello&quot;</span><span class="p">}</span>
+        <span class="n">plus</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="s2">&quot;world&quot;</span><span class="p">],</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;helloworld&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">plus</span><span class="p">))</span>
+
+        <span class="c1"># 测试mul_expr</span>
+        <span class="n">mul</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">mul</span><span class="p">))</span>
+        <span class="n">mul</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;SLASH&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)]),</span> <span class="mi">5</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">mul</span><span class="p">))</span>
+
+        <span class="c1"># 测试四则运算</span>
+        <span class="c1"># 3.14*(6+2)*3</span>
+        <span class="n">complex_arith</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)]),</span>
+                                                         <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span>
+                                                              <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span>
+                                                               <span class="mi">2</span><span class="p">]),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)]),</span>
+                                                         <span class="mi">3</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mf">3.14</span> <span class="o">*</span> <span class="p">(</span><span class="mi">6</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">complex_arith</span><span class="p">))</span>
+        <span class="c1"># (3.14 + &quot;hello&quot;)*2 =&gt; 3.14hello3.14hello</span>
+        <span class="n">complex_arith2</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_expr&#39;</span><span class="p">),</span> <span class="p">[</span>
+            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mf">3.14</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="s1">&#39;hello&#39;</span><span class="p">]),</span>
+            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;mul_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;STAR&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)]),</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;3.14hello3.14hello&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">complex_arith2</span><span class="p">))</span>
+
+        <span class="c1"># 测试compare</span>
+        <span class="c1"># 1 &gt; 2</span>
+        <span class="n">cmp1</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;compare_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;comp_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;MORETHAN&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">)]),</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">cmp1</span><span class="p">))</span>
+        <span class="c1"># 1 &gt;= 1</span>
+        <span class="n">cmp2</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;compare_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;comp_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;__ANON_2&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;=&#39;</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">cmp2</span><span class="p">))</span>
+
+        <span class="c1"># &quot;hello&quot; &gt; &quot;world&quot;</span>
+        <span class="n">cmp3</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;compare_expr&#39;</span><span class="p">),</span>
+                    <span class="p">[</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;comp_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;MORETHAN&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">)]),</span> <span class="s2">&quot;world&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span> <span class="o">&gt;</span> <span class="s2">&quot;world&quot;</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">cmp3</span><span class="p">))</span>
+
+        <span class="c1"># 测试not,or,and</span>
+        <span class="n">nott</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="s1">&#39;not_test&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;good&#39;</span><span class="p">)])</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;good&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">nott</span><span class="p">))</span>
+
+        <span class="c1"># 1 or 2+3 or 0</span>
+        <span class="n">orr</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;or_test&#39;</span><span class="p">),</span>
+                   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">3</span><span class="p">]),</span>
+                    <span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="ow">or</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">3</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">orr</span><span class="p">))</span>
+
+        <span class="c1"># True and False or True and True</span>
+        <span class="n">andd</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;or_test&#39;</span><span class="p">),</span>
+                    <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;and_test&#39;</span><span class="p">),</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;and_test&#39;</span><span class="p">),</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">])])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="kc">True</span> <span class="ow">and</span> <span class="kc">False</span> <span class="ow">or</span> <span class="kc">True</span> <span class="ow">and</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">andd</span><span class="p">))</span>
+
+        <span class="c1"># 三目运算符</span>
+        <span class="c1"># true?1+2:2+3</span>
+        <span class="n">three1</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;conditional_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">3</span><span class="p">])])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">three1</span><span class="p">))</span>
+
+        <span class="n">three2</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;conditional_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;add_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span> <span class="mi">3</span><span class="p">])])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">three2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="InterpreterTest.test_stmt"><a class="viewcode-back" href="../../source/test.html#test.interpreter_test.InterpreterTest.test_stmt">[文档]</a>    <span class="k">def</span> <span class="nf">test_stmt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        测试语句的执行</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dumb_interpreter</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dont_init</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">stage</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="c1"># 测试赋值</span>
+        <span class="n">assign_stmt</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">),</span> <span class="n">Tree</span><span class="p">(</span>
+            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span> <span class="mi">1</span><span class="p">])])</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">assign_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">SamoyedException</span><span class="p">):</span>
+            <span class="n">assign_stmt</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span>
+                               <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">),</span> <span class="n">Tree</span><span class="p">(</span>
+                                   <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span> <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">)])])</span>
+            <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">assign_stmt</span><span class="p">)</span>
+
+        <span class="c1"># 测试分支语句</span>
+        <span class="k">class</span> <span class="nc">MockStage</span><span class="p">():</span>
+            <span class="k">pass</span>
+
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">stage</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MockStage</span><span class="p">()</span>
+        <span class="n">branch_stmt</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;branch_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">)])])</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">branch_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">stage</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">next</span><span class="p">)</span>
+
+        <span class="c1"># 测试if语句</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        if true:</span>
+<span class="sd">            x = x + 1</span>
+<span class="sd">        else:</span>
+<span class="sd">            x = 0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;if_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                                                           <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                                                            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                       <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                 <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                       <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span>
+                                                                                                 <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                                                                  <span class="n">Tree</span><span class="p">(</span>
+                                                                                                      <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                            <span class="s1">&#39;add_op&#39;</span><span class="p">),</span>
+                                                                                                      <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span>
+                                                                                                             <span class="s1">&#39;+&#39;</span><span class="p">)]),</span>
+                                                                                                  <span class="mi">1</span><span class="p">])])]),</span>
+                                            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                                                     <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                                                      <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                           <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                      <span class="mi">0</span><span class="p">])])])</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span>
+        <span class="n">s2</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;if_stmt&#39;</span><span class="p">),</span>
+                  <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                                   <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                                    <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                         <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                    <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;plus_expr&#39;</span><span class="p">),</span>
+                                                                         <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">Tree</span><span class="p">(</span>
+                                                                             <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                   <span class="s1">&#39;add_op&#39;</span><span class="p">),</span>
+                                                                             <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;PLUS&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)]),</span>
+                                                                          <span class="mi">1</span><span class="p">])])]),</span>
+                   <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                            <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span>
+                                                             <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                  <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span> <span class="mi">0</span><span class="p">])])])</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span>
+
+        <span class="c1"># 测试match</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        match x:</span>
+<span class="sd">            0=&gt;</span>
+<span class="sd">                y = 2</span>
+<span class="sd">            1=&gt;</span>
+<span class="sd">                y = 3</span>
+<span class="sd">            default =&gt;</span>
+<span class="sd">                y = 4</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;match_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">),</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">),</span>
+                                                                               <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                    <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span> <span class="mi">2</span><span class="p">])])]),</span>
+                                                   <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span>
+                                                        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">),</span>
+                                                                                                <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                           <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                     <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                            <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                <span class="mi">3</span><span class="p">])])]),</span>
+                                                   <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;default_stmt&#39;</span><span class="p">),</span>
+                                                        <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">),</span>
+                                                                                                <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                           <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                     <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                            <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                <span class="mi">4</span><span class="p">])])])])</span>
+        <span class="c1"># 执行x=0子句</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+
+        <span class="c1"># 执行default</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;asddsa&quot;</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="InterpreterTest.test_timecontrol_match"><a class="viewcode-back" href="../../source/test.html#test.interpreter_test.InterpreterTest.test_timecontrol_match">[文档]</a>    <span class="k">def</span> <span class="nf">test_timecontrol_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        测试带时间控制的match语句</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 建立哑解释器</span>
+        <span class="n">dumb_interpreter</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dont_init</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="c1"># 重新绑定input函数</span>
+        <span class="c1"># listen将从一个队列中取值</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="n">input_end</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">mock_input</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+        <span class="n">output_end</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="k">lambda</span> <span class="n">qq</span><span class="p">:</span> <span class="n">qq</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">q</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;listen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_end</span>
+
+        <span class="c1"># 输入一个简单的语句</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        match @(2)listen():</span>
+<span class="sd">            &quot;投诉&quot; =&gt;</span>
+<span class="sd">                s=&quot;投诉&quot;</span>
+<span class="sd">            &quot;账单&quot; =&gt;</span>
+<span class="sd">                s=&quot;账单&quot;</span>
+<span class="sd">            slience =&gt;</span>
+<span class="sd">                s=&quot;沉默&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[简单匹配测试]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="n">match_stmt</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;match_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;at_expr&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;at_expr_parameter&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                                                              <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;listen&#39;</span><span class="p">),</span> <span class="kc">None</span><span class="p">]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="s1">&#39;投诉&#39;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+                                                                 <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span>
+                                                                 <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                             <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                                       <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                   <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                             <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                    <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                        <span class="s1">&#39;投诉&#39;</span><span class="p">])])]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="s1">&#39;账单&#39;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                                                     <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                                <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                          <span class="p">[</span><span class="n">Token</span><span class="p">(</span>
+                                                                                                              <span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                              <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                     <span class="s1">&#39;账单&#39;</span><span class="p">])])]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;slience_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                                                     <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                                <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                          <span class="p">[</span><span class="n">Token</span><span class="p">(</span>
+                                                                                                              <span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                              <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                     <span class="s1">&#39;沉默&#39;</span><span class="p">])])])])</span>
+
+        <span class="c1"># 设定初始值</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;投诉&quot;</span><span class="p">}</span>
+
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">process</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;投诉&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">process</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 排空队列</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1">############</span>
+        <span class="c1">#  超时测试 #</span>
+        <span class="c1">###########</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[超时测试]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="c1"># 设定初始值</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mf">2.2</span><span class="p">:</span> <span class="s2">&quot;投诉&quot;</span><span class="p">}</span>  <span class="c1"># 超时时间为2s，这个应该要超时。</span>
+
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">process</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;沉默&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">process</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 排空队列</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1">###############</span>
+        <span class="c1">#  多次输入测试 #</span>
+        <span class="c1">###############</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[多次输入测试]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="c1"># 设定初始值</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;emmm..&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">:</span> <span class="s2">&quot;我要&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;对你们&quot;</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">:</span> <span class="s2">&quot;投诉&quot;</span><span class="p">}</span>
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="c1"># process = Process(target=input_end, args=(plan,))</span>
+        <span class="c1"># process.start()</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;投诉&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span>
+
+        <span class="c1">######################</span>
+        <span class="c1">#  多次输入但是没有匹配 #</span>
+        <span class="c1">######################</span>
+        <span class="c1"># 排空队列</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[多次输入但是没有匹配]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="c1"># 设定初始值</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;emmm..&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">:</span> <span class="s2">&quot;我要&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;对你们&quot;</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">:</span> <span class="s2">&quot;进行&quot;</span><span class="p">}</span>
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;沉默&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span>
+
+        <span class="c1">##############</span>
+        <span class="c1"># 最短时间限制 #</span>
+        <span class="c1">##############</span>
+
+        <span class="n">match_stmt</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;match_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;at_expr&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;at_expr_parameter&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+                                                              <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;listen&#39;</span><span class="p">),</span> <span class="kc">None</span><span class="p">]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="s1">&#39;投诉&#39;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+                                                                 <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span>
+                                                                 <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                             <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                                       <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                   <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                             <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                    <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                        <span class="s1">&#39;投诉&#39;</span><span class="p">])])]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="s1">&#39;账单&#39;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                                                     <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                                <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                          <span class="p">[</span><span class="n">Token</span><span class="p">(</span>
+                                                                                                              <span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                              <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                     <span class="s1">&#39;账单&#39;</span><span class="p">])])]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;slience_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                 <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                                                     <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                                <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                          <span class="p">[</span><span class="n">Token</span><span class="p">(</span>
+                                                                                                              <span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                              <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                     <span class="s1">&#39;沉默&#39;</span><span class="p">])])])])</span>
+        <span class="c1"># 排空队列</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[最短时间限制]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="c1"># 设定初始值</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;投诉&quot;</span><span class="p">}</span>
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;投诉&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InterpreterTest.test_reg_match"><a class="viewcode-back" href="../../source/test.html#test.interpreter_test.InterpreterTest.test_reg_match">[文档]</a>    <span class="k">def</span> <span class="nf">test_reg_match</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        测试带正则表达式的匹配</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 建立哑解释器</span>
+        <span class="n">dumb_interpreter</span> <span class="o">=</span> <span class="n">Interpreter</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dont_init</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="c1"># 重新绑定input函数</span>
+        <span class="c1"># listen将从一个队列中取值</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="n">input_end</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">mock_input</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span>
+        <span class="n">output_end</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="k">lambda</span> <span class="n">qq</span><span class="p">:</span> <span class="n">qq</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">q</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;listen&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_end</span>
+
+        <span class="n">match_stmt</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;match_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;at_expr&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;at_expr_parameter&#39;</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                                                              <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;listen&#39;</span><span class="p">),</span> <span class="kc">None</span><span class="p">]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span>
+                                                             <span class="p">[</span><span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;reg&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;__ANON_8&#39;</span><span class="p">,</span> <span class="s1">&#39;.*投诉(.*)&#39;</span><span class="p">)]),</span>
+                                                              <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                  <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span>
+                                                                       <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                             <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)]),</span> <span class="s1">&#39;投诉&#39;</span><span class="p">])])]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;case_stmt&#39;</span><span class="p">),</span> <span class="p">[</span><span class="s1">&#39;账单&#39;</span><span class="p">,</span> <span class="n">Tree</span><span class="p">(</span>
+                                                            <span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                                                    <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                               <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                         <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                                <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                    <span class="s1">&#39;账单&#39;</span><span class="p">])])]),</span>
+                                                        <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;slience_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                            <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;simple_stmt&#39;</span><span class="p">),</span> <span class="p">[</span>
+                                                                <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_expr&#39;</span><span class="p">),</span> <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">),</span>
+                                                                                                    <span class="n">Tree</span><span class="p">(</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;RULE&#39;</span><span class="p">,</span>
+                                                                                                               <span class="s1">&#39;assign_op&#39;</span><span class="p">),</span>
+                                                                                                         <span class="p">[</span><span class="n">Token</span><span class="p">(</span><span class="s1">&#39;EQUAL&#39;</span><span class="p">,</span>
+                                                                                                                <span class="s1">&#39;=&#39;</span><span class="p">)]),</span>
+                                                                                                    <span class="s1">&#39;沉默&#39;</span><span class="p">])])])])</span>
+        <span class="c1">#######################</span>
+        <span class="c1"># 测试带正则表达式匹配失败#</span>
+        <span class="c1">#######################</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[测试带正则表达式匹配失败]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="c1"># 设定初始值</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;我要投&quot;</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">:</span> <span class="s2">&quot;投诉AA&quot;</span><span class="p">}</span>  <span class="c1"># 只匹配 投诉.*</span>
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;沉默&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span>
+
+        <span class="c1">#######################</span>
+        <span class="c1"># 测试带正则表达式匹配成功#</span>
+        <span class="c1">#######################</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[测试带正则表达式匹配成功]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;我要投&quot;</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">:</span> <span class="s2">&quot;投诉AA&quot;</span><span class="p">}</span>  <span class="c1"># 只匹配 投诉.*</span>
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;投诉&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span>
+
+        <span class="c1">#######################</span>
+        <span class="c1"># 测试带正则表达式匹配成功2#</span>
+        <span class="c1">#######################</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[测试带正则表达式匹配成功2]&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">plan</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;我要投&quot;</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">:</span> <span class="s2">&quot;账单&quot;</span><span class="p">}</span>
+        <span class="c1"># 进程用来提供input输入</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">input_end</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">plan</span><span class="p">,))</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1"># 执行语句</span>
+        <span class="n">dumb_interpreter</span><span class="o">.</span><span class="n">exec_statement</span><span class="p">(</span><span class="n">match_stmt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="s2">&quot;账单&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">])</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pass&quot;</span><span class="p">)</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">samoyed</a></h1>
+
+
+
+
+
+
+
+
+<h3>导航</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="转向" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, ruiqurm.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+
+<html lang="zh_CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>samoyed package &#8212; samoyed  文档</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总目录"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">samoyed package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="samoyed-package">
+<h1>samoyed package<a class="headerlink" href="#samoyed-package" title="永久链接至标题">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="永久链接至标题">¶</a></h2>
+</section>
+<section id="samoyed-compile-template-module">
+<h2>samoyed.compile_template module<a class="headerlink" href="#samoyed-compile-template-module" title="永久链接至标题">¶</a></h2>
+</section>
+<section id="module-samoyed.core">
+<span id="samoyed-core-module"></span><h2>samoyed.core module<a class="headerlink" href="#module-samoyed.core" title="永久链接至标题">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="samoyed.core.Context">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.core.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dollar_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Context"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Context" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>上下文
+包括</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Context.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dollar_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Context.__init__"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Context.__init__" title="永久链接至目标">¶</a></dt>
+<dd><div class="admonition- admonition">
+<p class="admonition-title">提示</p>
+<p>如果dollar_names包含名字叫mg的方法会被过滤掉</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>names</strong> – 外部传入的变量表</p></li>
+<li><p><strong>dollar_names</strong> – 传入的参数</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Context.is_exit">
+<span class="sig-name descname"><span class="pre">is_exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#Context.is_exit"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Context.is_exit" title="永久链接至目标">¶</a></dt>
+<dd><p>判断当前程序是否已经退出
+:returns: 当前程序是否已经退出
+:rtype: bool</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Context.set_exit">
+<span class="sig-name descname"><span class="pre">set_exit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Context.set_exit"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Context.set_exit" title="永久链接至目标">¶</a></dt>
+<dd><p>设置当前程序退出
+:returns:
+:rtype: None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.core.</span></span><span class="sig-name descname"><span class="pre">Interpreter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">lark.tree.Tree</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dont_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>解释器</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">lark.tree.Tree</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dont_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter.__init__"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter.__init__" title="永久链接至目标">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">参数</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> – </p></li>
+<li><p><strong>context</strong> – </p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>dont_init</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter._match_value">
+<span class="sig-name descname"><span class="pre">_match_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">re.Pattern</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">re.Match</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter._match_value"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter._match_value" title="永久链接至目标">¶</a></dt>
+<dd><p>判断节点的值是否匹配
+如果是正则匹配会返回匹配结果
+:param node:
+:param value1:
+:return:</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.arith_operator">
+<span class="sig-name descname"><span class="pre">arith_operator</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'%':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">mod&gt;,</span> <span class="pre">'*':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">mul&gt;,</span> <span class="pre">'+':</span> <span class="pre">&lt;function</span> <span class="pre">mock_add&gt;,</span> <span class="pre">'-':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">sub&gt;,</span> <span class="pre">'/':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">truediv&gt;,</span> <span class="pre">'//':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">floordiv&gt;}</span></em><a class="headerlink" href="#samoyed.core.Interpreter.arith_operator" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.compare_operator">
+<span class="sig-name descname"><span class="pre">compare_operator</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'!=':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">ne&gt;,</span> <span class="pre">'&lt;':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">lt&gt;,</span> <span class="pre">'&lt;=':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">le&gt;,</span> <span class="pre">'==':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">eq&gt;,</span> <span class="pre">'&gt;':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">gt&gt;,</span> <span class="pre">'&gt;=':</span> <span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">ge&gt;}</span></em><a class="headerlink" href="#samoyed.core.Interpreter.compare_operator" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.exec">
+<span class="sig-name descname"><span class="pre">exec</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter.exec"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter.exec" title="永久链接至目标">¶</a></dt>
+<dd><p>执行
+:return:</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.exec_statement">
+<span class="sig-name descname"><span class="pre">exec_statement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lark.tree.Tree</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter.exec_statement"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter.exec_statement" title="永久链接至目标">¶</a></dt>
+<dd><p>执行每一个语句
+:param stat: 语句语法节点
+:return:</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.f">
+<span class="sig-name descname"><span class="pre">f</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_io.TextIOWrapper</span> <span class="pre">name='/home/ruiqurm/bupt/prcaticeOfPrograming/samoyed/samoyed/samoyed.gram'</span> <span class="pre">mode='r'</span> <span class="pre">encoding='UTF-8'&gt;</span></em><a class="headerlink" href="#samoyed.core.Interpreter.f" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.get_expression">
+<span class="sig-name descname"><span class="pre">get_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">lark.tree.Tree</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">lark.lexer.Token</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numbers.Number</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dont_compute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">function</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter.get_expression"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter.get_expression" title="永久链接至目标">¶</a></dt>
+<dd><p>获取表达式的值
+:param expr: 表达式树
+:param context: 上下文,默认为None.如果传入上下文，那么按照上下文计算表达式的值
+:return: 数字，字符串或者函数</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter.init"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter.init" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.parser">
+<span class="sig-name descname"><span class="pre">parser</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Lark(open('&lt;string&gt;'),</span> <span class="pre">parser='lalr',</span> <span class="pre">lexer='contextual',</span> <span class="pre">...)</span></em><a class="headerlink" href="#samoyed.core.Interpreter.parser" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.reduce">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#Interpreter.reduce"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.Interpreter.reduce" title="永久链接至目标">¶</a></dt>
+<dd><p>计算形如数值、函数混合列表的值
+:param l:
+:return:</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.Interpreter.transformer">
+<span class="sig-name descname"><span class="pre">transformer</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;samoyed.core.SamoyedTransformer</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#samoyed.core.Interpreter.transformer" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.core.</span></span><span class="sig-name descname"><span class="pre">SamoyedIndenter</span></span><a class="reference internal" href="../_modules/samoyed/core.html#SamoyedIndenter"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.SamoyedIndenter" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">lark.indenter.Indenter</span></code></p>
+<p>间隔控制</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.CLOSE_PAREN_types">
+<span class="sig-name descname"><span class="pre">CLOSE_PAREN_types</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.CLOSE_PAREN_types" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.DEDENT_type">
+<span class="sig-name descname"><span class="pre">DEDENT_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'_DEDENT'</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.DEDENT_type" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.INDENT_type">
+<span class="sig-name descname"><span class="pre">INDENT_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'_INDENT'</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.INDENT_type" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.NL_type">
+<span class="sig-name descname"><span class="pre">NL_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'_NEWLINE'</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.NL_type" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.OPEN_PAREN_types">
+<span class="sig-name descname"><span class="pre">OPEN_PAREN_types</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.OPEN_PAREN_types" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.indent_level">
+<span class="sig-name descname"><span class="pre">indent_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.indent_level" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.paren_level">
+<span class="sig-name descname"><span class="pre">paren_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.paren_level" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedIndenter.tab_len">
+<span class="sig-name descname"><span class="pre">tab_len</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#samoyed.core.SamoyedIndenter.tab_len" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.core.</span></span><span class="sig-name descname"><span class="pre">SamoyedTransformer</span></span><a class="reference internal" href="../_modules/samoyed/core.html#SamoyedTransformer"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.SamoyedTransformer" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">lark.visitors.Transformer</span></code></p>
+<p>基础的语法制导，只会转换一些常量。</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.DOLLAR_VAR">
+<span class="sig-name descname"><span class="pre">DOLLAR_VAR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lark.lexer.Token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#SamoyedTransformer.DOLLAR_VAR"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.SamoyedTransformer.DOLLAR_VAR" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.FLOAT">
+<span class="sig-name descname"><span class="pre">FLOAT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lark.lexer.Token</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#SamoyedTransformer.FLOAT"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.SamoyedTransformer.FLOAT" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.INT">
+<span class="sig-name descname"><span class="pre">INT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lark.lexer.Token</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#SamoyedTransformer.INT"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.SamoyedTransformer.INT" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.STR">
+<span class="sig-name descname"><span class="pre">STR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lark.lexer.Token</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/samoyed/core.html#SamoyedTransformer.STR"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.SamoyedTransformer.STR" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.false">
+<span class="sig-name descname"><span class="pre">false</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#samoyed.core.SamoyedTransformer.false" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.none">
+<span class="sig-name descname"><span class="pre">none</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#samoyed.core.SamoyedTransformer.none" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.core.SamoyedTransformer.true">
+<span class="sig-name descname"><span class="pre">true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#samoyed.core.SamoyedTransformer.true" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.core.compile">
+<span class="sig-prename descclassname"><span class="pre">samoyed.core.</span></span><span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/core.html#compile"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.core.compile" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-samoyed.exception">
+<span id="samoyed-exception-module"></span><h2>samoyed.exception module<a class="headerlink" href="#module-samoyed.exception" title="永久链接至标题">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.NotFoundEntrance">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">NotFoundEntrance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#NotFoundEntrance"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.NotFoundEntrance" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedInterpretError" title="samoyed.exception.SamoyedInterpretError"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedInterpretError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.NotImplementError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">NotImplementError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#NotImplementError"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.NotImplementError" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedInterpretError" title="samoyed.exception.SamoyedInterpretError"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedInterpretError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.SamoyedException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">SamoyedException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#SamoyedException"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.SamoyedException" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>错误基类</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.SamoyedInterpretError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">SamoyedInterpretError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#SamoyedInterpretError"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.SamoyedInterpretError" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedException" title="samoyed.exception.SamoyedException"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedException</span></code></a></p>
+<p>解释错误</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.SamoyedNameError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">SamoyedNameError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#SamoyedNameError"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.SamoyedNameError" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedRuntimeError" title="samoyed.exception.SamoyedRuntimeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedRuntimeError</span></code></a></p>
+<p>类型错误</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.SamoyedRuntimeError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">SamoyedRuntimeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#SamoyedRuntimeError"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.SamoyedRuntimeError" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedException" title="samoyed.exception.SamoyedException"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedException</span></code></a></p>
+<p>运行时错误</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.SamoyedTypeError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">SamoyedTypeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#SamoyedTypeError"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.SamoyedTypeError" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedRuntimeError" title="samoyed.exception.SamoyedRuntimeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedRuntimeError</span></code></a></p>
+<p>类型错误</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="samoyed.exception.SyntaxError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.exception.</span></span><span class="sig-name descname"><span class="pre">SyntaxError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/exception.html#SyntaxError"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.exception.SyntaxError" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#samoyed.exception.SamoyedInterpretError" title="samoyed.exception.SamoyedInterpretError"><code class="xref py py-class docutils literal notranslate"><span class="pre">samoyed.exception.SamoyedInterpretError</span></code></a></p>
+</dd></dl>
+
+</section>
+<section id="module-samoyed.libs">
+<span id="samoyed-libs-module"></span><h2>samoyed.libs module<a class="headerlink" href="#module-samoyed.libs" title="永久链接至标题">¶</a></h2>
+<p>内置函数</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="samoyed.libs.TimeControl">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">samoyed.libs.</span></span><span class="sig-name descname"><span class="pre">TimeControl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_wait</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_wait</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sleep_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#TimeControl"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.TimeControl" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>返回一个可调用对象，调用该对象会进行延迟
+如果主线程先结束，那么会取消计时器；
+否则，计时器会杀死主线程</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.libs.TimeControl.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#TimeControl.__call__"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.TimeControl.__call__" title="永久链接至目标">¶</a></dt>
+<dd><p>生成流</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.libs.TimeControl.cancel">
+<span class="sig-name descname"><span class="pre">cancel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#TimeControl.cancel"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.TimeControl.cancel" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.libs.TimeControl.max_wait_handler">
+<span class="sig-name descname"><span class="pre">max_wait_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">threading.Event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#TimeControl.max_wait_handler"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.TimeControl.max_wait_handler" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="samoyed.libs.TimeControl.min_wait_handler">
+<span class="sig-name descname"><span class="pre">min_wait_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">threading.Event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#TimeControl.min_wait_handler"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.TimeControl.min_wait_handler" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.libs.arg_option_add">
+<span class="sig-prename descclassname"><span class="pre">samoyed.libs.</span></span><span class="sig-name descname"><span class="pre">arg_option_add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help_msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#arg_option_add"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.arg_option_add" title="永久链接至目标">¶</a></dt>
+<dd><p>添加可选参数</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.libs.arg_seq_add">
+<span class="sig-prename descclassname"><span class="pre">samoyed.libs.</span></span><span class="sig-name descname"><span class="pre">arg_seq_add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help_msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#arg_seq_add"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.arg_seq_add" title="永久链接至目标">¶</a></dt>
+<dd><p>添加顺序参数</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.libs.make_arg_parser">
+<span class="sig-prename descclassname"><span class="pre">samoyed.libs.</span></span><span class="sig-name descname"><span class="pre">make_arg_parser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos_arg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option_arg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">helping_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/libs.html#make_arg_parser"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.make_arg_parser" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.libs.mock_add">
+<span class="sig-prename descclassname"><span class="pre">samoyed.libs.</span></span><span class="sig-name descname"><span class="pre">mock_add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/samoyed/libs.html#mock_add"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.libs.mock_add" title="永久链接至目标">¶</a></dt>
+<dd><p>实现字符串和数字相加操作的add</p>
+</dd></dl>
+
+</section>
+<section id="module-samoyed.utils">
+<span id="samoyed-utils-module"></span><h2>samoyed.utils module<a class="headerlink" href="#module-samoyed.utils" title="永久链接至标题">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.utils.delete_pipe">
+<span class="sig-prename descclassname"><span class="pre">samoyed.utils.</span></span><span class="sig-name descname"><span class="pre">delete_pipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/utils.html#delete_pipe"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.utils.delete_pipe" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.utils.get_pipe_read_end">
+<span class="sig-prename descclassname"><span class="pre">samoyed.utils.</span></span><span class="sig-name descname"><span class="pre">get_pipe_read_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../_modules/samoyed/utils.html#get_pipe_read_end"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.utils.get_pipe_read_end" title="永久链接至目标">¶</a></dt>
+<dd><p>获取管道的读取端函数
+:param name: 管道名
+:return: 读取函数</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.utils.get_pipe_write_end">
+<span class="sig-prename descclassname"><span class="pre">samoyed.utils.</span></span><span class="sig-name descname"><span class="pre">get_pipe_write_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../_modules/samoyed/utils.html#get_pipe_write_end"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.utils.get_pipe_write_end" title="永久链接至目标">¶</a></dt>
+<dd><p>获取管道的写入端函数
+:param name: 管道名
+:return: 写入函数</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.utils.make_pipe">
+<span class="sig-prename descclassname"><span class="pre">samoyed.utils.</span></span><span class="sig-name descname"><span class="pre">make_pipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8192</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/samoyed/utils.html#make_pipe"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.utils.make_pipe" title="永久链接至目标">¶</a></dt>
+<dd><p>生成一个具名管道
+:param name: 管道位置和名字
+:param buffer_size: 缓存大小
+:return: 文件描述符</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="samoyed.utils.watchdog">
+<span class="sig-prename descclassname"><span class="pre">samoyed.utils.</span></span><span class="sig-name descname"><span class="pre">watchdog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/samoyed/utils.html#watchdog"><span class="viewcode-link"><span class="pre">[源代码]</span></span></a><a class="headerlink" href="#samoyed.utils.watchdog" title="永久链接至目标">¶</a></dt>
+<dd><p>看门狗装饰器</p>
+</dd></dl>
+
+</section>
+<section id="module-samoyed">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-samoyed" title="永久链接至标题">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">目录</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">samoyed package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#samoyed-compile-template-module">samoyed.compile_template module</a></li>
+<li><a class="reference internal" href="#module-samoyed.core">samoyed.core module</a></li>
+<li><a class="reference internal" href="#module-samoyed.exception">samoyed.exception module</a></li>
+<li><a class="reference internal" href="#module-samoyed.libs">samoyed.libs module</a></li>
+<li><a class="reference internal" href="#module-samoyed.utils">samoyed.utils module</a></li>
+<li><a class="reference internal" href="#module-samoyed">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/source/samoyed.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="转向" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="总目录"
+             >索引</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">samoyed package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; 版权所有 2021, ruiqurm.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+    </div>
+  </body>
+</html>

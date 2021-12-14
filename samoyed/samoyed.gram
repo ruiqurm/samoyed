@@ -1,13 +1,10 @@
 start: (_NEWLINE | stmt)*
-?stmt: simple_stmt | statedef | stream_expr
+?stmt: simple_stmt | statedef
 ?inner_stmt : simple_stmt| match_stmt | for_stmt | if_stmt
 simple_stmt: small_stmt _NEWLINE
 full_expr : _full_expr
 ?small_stmt : pass_expr | branch_expr | _full_expr |assign_expr |break_stmt|continue_stmt
 _suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
-stream_expr : input_stream_expr | output_stream_expr
-input_stream_expr : NAME "<<"  NAME
-output_stream_expr : NAME ">>" NAME
 statedef: "state" NAME  ":" _suite
 match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  "match" at_expr ":" _NEWLINE _INDENT case_stmt+ slience_stmt? _DEDENT
 case_stmt:  [_full_expr | reg]  "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | [_full_expr | reg] "=>" branch_expr

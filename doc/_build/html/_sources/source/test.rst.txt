@@ -1,0 +1,45 @@
+test package
+============
+
+Submodules
+----------
+
+test.grammar\_test module
+-------------------------
+
+.. automodule:: test.grammar_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+test.interpreter\_test module
+-----------------------------
+
+.. automodule:: test.interpreter_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+test.libs\_test module
+----------------------
+
+.. automodule:: test.libs_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+test.utils\_test module
+-----------------------
+
+.. automodule:: test.utils_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: test
+   :members:
+   :undoc-members:
+   :show-inheritance:
