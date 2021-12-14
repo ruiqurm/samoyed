@@ -1,31 +1,34 @@
-
+arg_seq_add("username","用户名")
+cnt = 0
 state main:
-    speak("欢迎致电XXXX。")
-    cnt = 0
-    match @listen(5):
+    speak($username + "欢迎致电XXXX。")
+    match @(5)listen():
         "查询" =>
             branch query
-        "办理" =>
-            branch business
+        #"办理" =>
+        #    branch business
         "人工" =>
             speak("正在为您接入人工，请稍候..")
             exit()
         slience =>
             cnt = cnt + 1
             if cnt == 2:
-                speak("通话超时")
-                exit
+                speak("通话超时..正在挂断")
+                exit()
             else:
                 branch main
 
 state query:
-    speak("请问需要查询什么?)
-    match @listen(5):
-        "话费" =>
-            branch thanks
-        ""
-state business:
-    speak()
-state thanks
+    speak("请问需要查询什么?")
+    match @(5)listen():
+        /\d月话费/ =>
+            speak("SELECT * FROM FEE WHERE NAME = " + $username + )
+        "手机号" =>
+            speak("2")
+    branch thanks
+
+
+
+state thanks:
     speak("感谢您的使用")
 
