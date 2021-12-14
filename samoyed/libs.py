@@ -61,22 +61,25 @@ class TimeControl:
         @watchdog(self.timeout_interval)
         def timeout_on_interval(*args, **kwargs):
             return self.func(*args, *kwargs)
-
-        while True:
-            try:
-                result = timeout_on_interval(*args, **kwargs)
-            except SamoyedTimeout:
-                yield None
-            except Exception as e:
-                raise SamoyedRuntimeError(str(e))
-            else:
-                yield result
-            if self.timeout.is_set():
-                self.max_wait_timer.cancel()
-                if self.min_wait is not None:
-                    self.min_wait_timer.cancel()
-                return
-            time.sleep(self.sleep_interval)
+        try:
+            while True:
+                try:
+                    result = timeout_on_interval(*args, **kwargs)
+                except SamoyedTimeout:
+                    yield None
+                except Exception as e:
+                    raise SamoyedRuntimeError(str(e))
+                else:
+                    yield result
+                if self.timeout.is_set():
+                    self.max_wait_timer.cancel()
+                    if self.min_wait is not None:
+                        self.min_wait_timer.cancel()
+                    return
+                time.sleep(self.sleep_interval)
+        except KeyboardInterrupt:
+            self.cancel()
+            raise KeyboardInterrupt
 
     def cancel(self):
         self.max_wait_timer.cancel()
