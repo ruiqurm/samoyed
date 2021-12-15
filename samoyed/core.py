@@ -345,9 +345,13 @@ class Interpreter:
             if bool_expr:
                 for stmt in stat.children[1].children:
                     self.exec_statement(stmt)
+                    if self.context.next is not None:
+                        return
             elif len(stat.children) == 3:
                 for stmt in stat.children[2].children:
                     self.exec_statement(stmt)
+                    if self.context.next is not None:
+                        return
         else:
             raise SamoyedNotImplementError
 
@@ -646,6 +650,7 @@ class Interpreter:
                 # 执行块中的每个语句
                 for st in case_statment.children:
                     self.exec_statement(st)
+                    if self.context.next is not None: break
                 break
             else:
                 """
@@ -762,6 +767,7 @@ class Interpreter:
             if find_flag and control.can_exit.is_set():
                 for st in stat.children[finded_case + 1].children[1:]:
                     self.exec_statement(st)
+                    if self.context.next is not None:break
                 return
         """
         匹配块结束....
@@ -772,6 +778,8 @@ class Interpreter:
             for st in stat.children[-1].children:
                 # 执行块中的每个语句
                 self.exec_statement(st)
+                if self.context.next is not None:break
+
     compare_operator = {
         ">": gt,
         "<": lt,
