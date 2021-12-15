@@ -547,3 +547,4 @@ else:
 
 if __name__ == "__main__":
     unittest.main()
+    print("通过interpreter_test\n")

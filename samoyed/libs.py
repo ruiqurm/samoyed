@@ -6,7 +6,7 @@ import sqlite3
 import threading
 import time
 from numbers import Number
-from typing import List, Union, Tuple, Dict
+from typing import List, Union, Tuple, Dict, Any
 
 from .exception import SamoyedTimeout, SamoyedRuntimeError
 from .utils import watchdog
@@ -239,7 +239,7 @@ def sqlite_connect(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], db_nam
     return cursor
 
 
-def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite3.Cursor, sql: str) -> str:
+def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite3.Cursor, sql: str) -> List[Any]:
     """
     执行一条sql指令。
     注意，由于脚本语言不支持列表，因此这里把返回结果全部转化成了字符串
@@ -258,7 +258,7 @@ def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite
     """
     cursor.execute(sql)
     conn2curosr[cursor].commit()
-    return str(cursor.fetchall())
+    return cursor.fetchall()
 
 
 # result = []

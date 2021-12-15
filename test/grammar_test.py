@@ -86,7 +86,6 @@ state hello:
 """
         i = Interpreter(test_code, dont_init=True)
         state = i.ast.children[0]
-        print(state.pretty())
         delta = 1e-3
         self.assertEqual(state.children[1].children[0],314)
         self.assertEqual(state.children[2].children[0].children[1],314)
@@ -291,7 +290,6 @@ state hello:
 """
         i = Interpreter(code, dont_init=True)
         stmt = i.ast.children[0].children[1]
-        print(stmt.pretty())
         self.assertEqual(5,len(stmt.children))
         self.assertEqual("case_stmt",stmt.children[1].data)
         self.assertEqual("case_stmt",stmt.children[2].data)
@@ -318,7 +316,6 @@ state hello:
 """
         i = Interpreter(code, dont_init=True)
         stmt = i.ast.children[0].children[1]
-        print(stmt.pretty())
         self.assertEqual(3,len(stmt.children)) # cat dog
         self.assertEqual("case_stmt",stmt.children[1].data)
         self.assertEqual("case_stmt",stmt.children[2].data)
@@ -330,6 +327,7 @@ state hello:
         self.assertEqual("case_stmt", stmt.children[2].data)
         self.assertEqual("case_stmt", stmt.children[3].data)
         self.assertEqual("default_stmt", stmt.children[4].data)
-
+        print("通过语法解析测试")
 if __name__ == '__main__':
     unittest.main()
+    print("通过grammar_test\n")

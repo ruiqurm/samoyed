@@ -15,7 +15,8 @@ if __name__ == '__main__':
     # i = Interpreter(f.read(),args={"名字":"ruiqurm"})
     # i.exec()
     # print(i.ast.pretty())
-    i = Interpreter(s)
-    i.exec()
+    # i = Interpreter(s)
+    # i.exec()
+    print(__file__)
 
 

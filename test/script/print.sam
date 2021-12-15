@@ -1,0 +1,17 @@
+"""
+只会打印一些内容
+"""
+cnt = 0
+state main:
+    speak("main")
+    if cnt > 0:
+        exit()
+    else:
+        branch a
+state a:
+    speak("a")
+    branch b
+state b:
+    speak("b")
+    cnt = cnt + 1
+    branch main

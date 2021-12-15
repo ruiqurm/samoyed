@@ -266,6 +266,9 @@ class Interpreter:
             通过判断children[0]的类型，即可知道它是什么表达式
             """
             simple_stmt = stat.children[0]
+            # 如果是终结符，那么不需要再处理了
+            if not isinstance(simple_stmt,lark.Tree):return
+
             simple_stmt_type = simple_stmt.data
             if simple_stmt_type == "branch_expr":
                 """
@@ -425,7 +428,9 @@ class Interpreter:
             * funccall：函数调用，从符号表中取变量
             * REG ：正则表达式
             """
-            if expr.data == "conditional_expr":
+            if expr.data == 'add_op' or expr.data == "mul_op":
+                return self.arith_operator[expr.children[0]]
+            elif expr.data == "conditional_expr":
                 """
                 如果是条件表达式..
                 类似if语句的处理
