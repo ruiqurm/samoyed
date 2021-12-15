@@ -339,7 +339,10 @@ class Interpreter:
         elif stat.data == "if_stmt":
             """
             如果是if语句
-            
+                 if_stmt
+                    |
+            ┌───────┬─────────┐
+            expr  true_st false_st
             """
             bool_expr = bool(self.get_expression(stat.children[0]))
             if bool_expr:
@@ -720,7 +723,7 @@ class Interpreter:
         cases = [self.get_expression(case_statment.children[0]) for case_statment in stat.children[1:] if
                  case_statment.data != "silence_stmt"]
 
-        results = []  # 每次读取的值
+        results = ""  # 每次读取的值
         find_flag = False  # 是否完成匹配
         finded_case = None  # 匹配的是第几个
 
@@ -733,7 +736,7 @@ class Interpreter:
         for result in control():
             # 如果新的结果不为空，保存
             if result is not None:
-                results.append(result)
+                results += result
 
             # 如果当前时间不允许退出，那么即使匹配了也无法退出
             # 这种情况下，直接跳过即可

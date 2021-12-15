@@ -1,4 +1,3 @@
-import unittest
 import sqlite3
 import subprocess
 import sys
@@ -6,10 +5,16 @@ import unittest
 import warnings
 import os
 from typing import Callable, Tuple
+import os
+import sqlite3
+import subprocess
+import sys
+import unittest
+import warnings
+from typing import Callable, Tuple
 
 
-
-class MockTerminal():
+class MockTerminal:
 
     def __init__(self, filename, *args):
         self.arg = args
@@ -54,22 +59,25 @@ class ScriptTest(unittest.TestCase):
         self.assertEqual(result.replace("\n", ""), "mainabmain")
         print("pass")
 
-    def test_simple_sam(self):
+    def test_example_sam(self):
         """
-        测试 script/simple.sam
+        测试 script/example.sam
         """
-        # print("[测试print.sam] ", end="")
-        # with MockTerminal("./script/print.sam") as proc:
-        #     proc.wait()
-        #     result = proc.stdout.read()
-        # self.assertEqual(result.replace("\n", ""), "mainabmain")
-        # print("pass")
-        # while sproc.poll() is None:
-        #     os.write(fd, "人工".encode())
-        #     print(sproc.stdout.read())
-        #     time.sleep(0.2)
-        pass
-
+        path = "{}/script/example.sam".format("/".join(__file__.split("/")[:-1]))
+        print("[example脚本测试]")
+        print("    [发送hello]",end='')
+        with MockTerminal(path) as (write, proc):
+            write("hello\n")
+            proc.wait()
+            result = proc.stdout.read()
+        self.assertTrue(str(result).find("hello world")!=-1)
+        print("pass")
+        print("    [不发送]",end='')
+        with MockTerminal(path) as (write, proc):
+            proc.wait()
+            result = proc.stdout.read()
+        self.assertTrue(str(result).find("超时") != -1)
+        print("pass")
     def test_database_sam(self):
         try:
             if os.path.exists("test.db"):
@@ -128,11 +136,11 @@ class ScriptTest(unittest.TestCase):
                 proc.wait()
                 result = proc.stdout.read()
             self.assertTrue(str(result).find("听不清楚。结束通话") != -1)
-            print("pass\n   all tests pass", end='')
+            print("pass\n", end='')
         finally:
             if os.path.exists("test.db"):
                 os.remove("test.db")
-
-
+    def test_simple_sam(self):
+        pass
 if __name__ == '__main__':
     unittest.main()

@@ -27,6 +27,7 @@ state main:
 state 中文状态码:
     pass
 """
+        print("[测试生成state]", end=" ")
         i = Interpreter(test_code,dont_init = True)
         self.assertEqual(len(i.ast.children),4)
         self.check_stage(i.ast.children[0],"hello")
@@ -45,7 +46,6 @@ state hello
 """
         with self.assertRaises(SamoyedInterpretError,msg = "缺少冒号未报错"):
             i = Interpreter(test_code, dont_init=True)
-
         # state内没有东西
         test_code = \
 """
@@ -53,11 +53,13 @@ state hello:
 """
         with self.assertRaises(SamoyedInterpretError, msg="未闭合state不报错"):
             i = Interpreter(test_code, dont_init=True)
+        print("pass")
 
     def test_value(self)->None:
         """
         测试常量和变量：true,false,none,数字，字符串,name
         """
+        print("[测试常量]", end=" ")
         test_code = \
 """
 state hello:
@@ -118,11 +120,14 @@ state hello:
             i = Interpreter("12x\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="非法变量名"):
             i = Interpreter("1中文\n", dont_init=True)
+        print("pass")
+
     def test_simple_stmt(self):
         """
         测试普通语句和赋值语句
         :return:
         """
+        print("[测试simple_stmt]", end=" ")
         test_code = \
 """
 state hello:
@@ -210,8 +215,10 @@ state hello:
         self.assertEqual(3,len(expr.children[6].children)) # 5,*,6
         self.assertEqual(5,expr.children[6].children[0])
         self.assertEqual(6,expr.children[6].children[2])
+        print("pass")
 
     def test_if_stmt(self):
+        print("[测试if]", end=" ")
         test_code = \
 """
 state hello:
@@ -247,8 +254,10 @@ state hello:
         # self.assertEqual(2,len(stmt.children[2].children))# bool表达式，if字句
         # self.assertEqual("compare_expr",stmt.children[2].children[0].data)
         # self.assertEqual("simple_stmt",stmt.children[2].children[1].data)
+        print("pass")
 
     def test_func(self):
+        print("[测试func]", end=" ")
         i = Interpreter("hello()\n", dont_init=True)
         self.assertEqual("funccall", i.ast.children[0].children[0].data)
         self.assertIsNone(i.ast.children[0].children[0].children[1])
@@ -273,8 +282,10 @@ state hello:
             i = Interpreter("hello(world,1,)\n", dont_init=True)
         with self.assertRaises(SamoyedInterpretError, msg="函数括号有问题没有报错"):
             i = Interpreter("hello(world,1,）\n", dont_init=True)
+        print("pass")
 
     def test_match_stmt(self):
+        print("[测试match]", end=" ")
         code = \
 """
 state hello:
@@ -327,7 +338,7 @@ state hello:
         self.assertEqual("case_stmt", stmt.children[2].data)
         self.assertEqual("case_stmt", stmt.children[3].data)
         self.assertEqual("default_stmt", stmt.children[4].data)
-        print("通过语法解析测试")
+        print("pass")
 if __name__ == '__main__':
     unittest.main()
     print("通过grammar_test\n")
