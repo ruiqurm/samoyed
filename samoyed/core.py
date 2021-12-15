@@ -317,7 +317,7 @@ class Interpreter:
                 compare_expr =>
                     stat
                 ...
-                slience =>
+                silence =>
                     stat
             ```        
             第二种形式是普通的多值匹配
@@ -675,7 +675,7 @@ class Interpreter:
             match_stmt
                  |
         ┌─────────────────────────────────┬────────────┬─────────────┐
-        expr0                          match_case1  match_case..  slience
+        expr0                          match_case1  match_case..  silence
         |                                 |                          |
         ┌────────┬─────────┐         ┌────┬──────┐                 ┌────┐
         at_para func    func_para   expr1 stmt1  ...              stmt1  ...
@@ -713,7 +713,7 @@ class Interpreter:
 
         # 预先算出每个case的表达式，不包含silence字句
         cases = [self.get_expression(case_statment.children[0]) for case_statment in stat.children[1:] if
-                 case_statment.data != "slience_stmt"]
+                 case_statment.data != "silence_stmt"]
 
         results = []  # 每次读取的值
         find_flag = False  # 是否完成匹配
@@ -767,8 +767,8 @@ class Interpreter:
         匹配块结束....
         如果超时了，并且没有完成任何匹配...
         """
-        # 如果有slience块，执行slience块
-        if stat.children[-1].data == "slience_stmt":
+        # 如果有silence块，执行silence块
+        if stat.children[-1].data == "silence_stmt":
             for st in stat.children[-1].children:
                 # 执行块中的每个语句
                 self.exec_statement(st)

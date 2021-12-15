@@ -294,7 +294,7 @@ else:
                 s="投诉"
             "账单" =>
                 s="账单"
-            slience =>
+            silence =>
                 s="沉默"
         """
         print("[简单匹配测试]", end=" ")
@@ -321,7 +321,7 @@ else:
                                                                                                               'EQUAL',
                                                                                                               '=')]),
                                                                                                      '账单'])])]),
-                                                        Tree(Token('RULE', 'slience_stmt'),
+                                                        Tree(Token('RULE', 'silence_stmt'),
                                                              [Tree(Token('RULE', 'simple_stmt'), [
                                                                  Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
                                                                                                      Tree(Token('RULE',
@@ -430,7 +430,7 @@ else:
                                                                                                               'EQUAL',
                                                                                                               '=')]),
                                                                                                      '账单'])])]),
-                                                        Tree(Token('RULE', 'slience_stmt'),
+                                                        Tree(Token('RULE', 'silence_stmt'),
                                                              [Tree(Token('RULE', 'simple_stmt'), [
                                                                  Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
                                                                                                      Tree(Token('RULE',
@@ -488,7 +488,7 @@ else:
                                                                                                          [Token('EQUAL',
                                                                                                                 '=')]),
                                                                                                     '账单'])])]),
-                                                        Tree(Token('RULE', 'slience_stmt'), [
+                                                        Tree(Token('RULE', 'silence_stmt'), [
                                                             Tree(Token('RULE', 'simple_stmt'), [
                                                                 Tree(Token('RULE', 'assign_expr'), [Token('NAME', 's'),
                                                                                                     Tree(Token('RULE',

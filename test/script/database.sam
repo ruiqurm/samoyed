@@ -1,0 +1,24 @@
+cursor = sqlite_connect("./test.db")
+arg_seq_add("username","用户名")
+
+state main:
+    match @(3)listen():
+        "id" =>
+            id = sqlite(cursor,"SELECT id FROM USER WHERE username='" + $username+"'")
+            if eval("len(id) == 0"):
+                speak("没有找到")
+            else:
+                speak("id为"+eval("id[0][0]"))
+        /(\d+)月账单/ =>
+            id = sqlite(cursor,"SELECT id FROM USER WHERE username='" + $username+"'")
+            if eval("len(id) == 0"):
+                speak("无此用户")
+                exit()
+            id = eval("id[0][0]")
+            result = sqlite(cursor,"SELECT * FROM BALANCE WHERE id="+id+" and month = "+$mg1)
+            if eval("len(result) == 0"):
+                speak("没有找到")
+            else:
+                speak(eval("result[0][2]"))
+        silence =>
+            speak("听不清楚。结束通话")

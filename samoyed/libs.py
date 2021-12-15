@@ -71,11 +71,14 @@ class TimeControl:
         try:
             while True:
                 # 尝试执行函数
+                result = None
                 try:
                     result = timeout_on_interval(*args, **kwargs)
                 except SamoyedTimeout:
                     # 如果超时，返回None
                     yield None
+                except EOFError:
+                    yield result
                 except Exception as e:
                     raise SamoyedRuntimeError(str(e))
                 else:
@@ -94,7 +97,7 @@ class TimeControl:
             self.cancel()
             raise KeyboardInterrupt
 
-    def cancel(self)->None:
+    def cancel(self) -> None:
         """撤销两个定时器线程
         """
         self.max_wait_timer.cancel()
@@ -239,7 +242,8 @@ def sqlite_connect(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], db_nam
     return cursor
 
 
-def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite3.Cursor, sql: str) -> List[Any]:
+def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite3.Cursor, sql: str) \
+        -> Union[None, List[Any]]:
     """
     执行一条sql指令。
     注意，由于脚本语言不支持列表，因此这里把返回结果全部转化成了字符串
@@ -256,10 +260,13 @@ def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite
     -------
         sql的结果
     """
-    cursor.execute(sql)
-    conn2curosr[cursor].commit()
-    return cursor.fetchall()
-
+    try:
+        cursor.execute(sql)
+        conn2curosr[cursor].commit()
+    except Exception as e:
+        return []
+    result = cursor.fetchall()
+    return result
 
 # result = []
 # t = TimeControl(input,30)

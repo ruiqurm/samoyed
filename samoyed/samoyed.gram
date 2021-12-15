@@ -6,10 +6,10 @@ full_expr : _full_expr
 ?small_stmt : pass_expr | branch_expr | _full_expr |assign_expr |break_stmt|continue_stmt
 _suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
 statedef: "state" NAME  ":" _suite
-match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  "match" at_expr ":" _NEWLINE _INDENT case_stmt+ slience_stmt? _DEDENT
+match_stmt : "match" _full_expr ":" _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  "match" at_expr ":" _NEWLINE _INDENT case_stmt+ silence_stmt? _DEDENT
 case_stmt:  [_full_expr | reg]  "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | [_full_expr | reg] "=>" branch_expr
 default_stmt : "default" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "default" "=>" branch_expr
-slience_stmt : "slience" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "slience" "=>" branch_expr
+silence_stmt : "silence" "=>" _NEWLINE _INDENT inner_stmt+ _DEDENT | "silence" "=>" branch_expr
 for_stmt : "for" NAME "=" _full_expr "to" _full_expr  ":"  _NEWLINE _INDENT inner_stmt+ _DEDENT
 if_stmt : "if" _full_expr ":" _NEWLINE _INDENT if_true_stmt _DEDENT ("else" ":" _NEWLINE _INDENT else_true_stmt+ _DEDENT)?
 if_true_stmt : inner_stmt+

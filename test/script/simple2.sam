@@ -10,7 +10,7 @@ state main:
         "人工" =>
             speak("正在为您接入人工，请稍候..")
             exit()
-        slience =>
+        silence =>
             cnt = cnt + 1
             if cnt == 2:
                 speak("通话超时..正在挂断")

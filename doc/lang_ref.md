@@ -223,7 +223,7 @@ match @()func():
     expr1 =>
         st1
     ...
-    slience =>
+    silence =>
         stn
 ```
 其中，@()表达式是时间控制表达式，我称它为`at expression`.  

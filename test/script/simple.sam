@@ -9,7 +9,7 @@ state main:
             branch compain
          "账单" =>
             branch bill
-         slience =>
+         silence =>
             speak("听不见，请再说一遍")
             branch main
 state compain:
