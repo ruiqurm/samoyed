@@ -4,14 +4,6 @@ samoyed package
 Submodules
 ----------
 
-samoyed.compile\_template module
---------------------------------
-
-.. automodule:: samoyed.compile_template
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 samoyed.core module
 -------------------
 

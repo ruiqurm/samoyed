@@ -13,6 +13,7 @@ Welcome to samoyed's documentation!
       Quick Start<quick_start.md>
       语法参考<lang_ref.md>
       编译<compile.md>
+      设计与实现<design.md>
       EBNF <EBNF.md>
 
 

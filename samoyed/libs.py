@@ -260,6 +260,7 @@ def sqlite(conn2curosr: Dict[sqlite3.Cursor, sqlite3.Connection], cursor: sqlite
     conn2curosr[cursor].commit()
     return str(cursor.fetchall())
 
+
 # result = []
 # t = TimeControl(input,30)
 # for i in t():

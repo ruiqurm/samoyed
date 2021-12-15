@@ -7,6 +7,7 @@ from numbers import Number
 from operator import lt, le, eq, ne, ge, gt, not_, or_, and_ \
     , sub, mul, mod, truediv, floordiv
 from typing import Union, Dict
+import sys
 
 import lark
 from lark import Lark, Transformer
@@ -97,10 +98,10 @@ class Context:
 
         # 绑定内置函数
         self.conn2curosr = {}  # type:Dict[sqlite3.Cursor,sqlite3.Connection]
-        self.names["print"] = print
+        self.names["print"] = sys.stderr.write
         self.names["speak"] = print
         self.names["listen"] = input
-        self.names["exit"] = self.set_exit
+        self.names["exit"] = sys.exit
         self.names["arg_seq_add"] = partial(arg_seq_add, self.seq_args)
         self.names["arg_option_add"] = partial(arg_option_add, self.option_args)
         self.names["sqlite_connect"] = partial(sqlite_connect, self.conn2curosr)
@@ -179,11 +180,9 @@ class Interpreter:
     def init(self) -> None:
         """执行所有外部的语句
         外部的语句指下面这种情况：
-        ```
         x = 1
         state main:
             pass
-        ```
         这里x=1就是外部的语句
         """
         self.stage = dict()

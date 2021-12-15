@@ -22,7 +22,7 @@ state query:
     speak("请问需要查询什么?")
     match @(5)listen():
         /\d月话费/ =>
-            speak("SELECT * FROM FEE WHERE NAME = " + $username + )
+            speak("SELECT * FROM FEE WHERE NAME = " + $username)
         "手机号" =>
             speak("2")
     branch thanks
