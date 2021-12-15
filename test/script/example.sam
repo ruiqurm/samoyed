@@ -1,0 +1,7 @@
+state main:
+    speak("hello")
+	match @(4,2)listen():
+		"hello" =>
+			speak("hello world")
+		silence =>
+			speak("超时")

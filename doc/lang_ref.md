@@ -159,7 +159,10 @@ state C:
 如果`a_state`不存在，会抛出异常。  
 对于一个state，当它执行完所有语句时，如果没有branch，那么它会默认退出。例如这里的`state C`
 
-如果branch在复杂语句(比如`match`,`if`)，它不会马上执行跳转。比如：
+branch和goto类似。
+
+如果branch在复杂语句(比如`match`,`if`)，它也会马上执行跳转
+
 ```
 state A:
     if expr:
@@ -168,7 +171,7 @@ state A:
         speak("B")
 
 ```
-将会打印出`A\nB`，而不是`A`.
+将会打印`A`.
 ### match语句
 `match`语句有两种用法。第一种用法是`switch`类似，第二种用法则带有时间控制。
 #### 普通匹配match
