@@ -1,0 +1,609 @@
+
+<!DOCTYPE html>
+
+<html lang="zh_CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>2. 语法参考 &#8212; samoyed  文档</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/translations.js"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="next" title="3. 编译" href="compile.html" />
+    <link rel="prev" title="1. quick start" href="quick_start.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总目录"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="compile.html" title="3. 编译"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="quick_start.html" title="1. quick start"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">2. </span>语法参考</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1><span class="section-number">2. </span>语法参考<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<section id="id2">
+<h2><span class="section-number">2.1. </span>基本类型<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<p>脚本语言支持以下基本类型</p>
+<ul class="simple">
+<li><p>bool</p></li>
+<li><p>int</p></li>
+<li><p>double</p></li>
+<li><p>str</p></li>
+<li><p>function</p></li>
+<li><p>None</p></li>
+</ul>
+<p>在一些特殊的式子中，可以使用</p>
+<ul class="simple">
+<li><p>正则表达式<code class="docutils literal notranslate"><span class="pre">\...\</span> </code></p></li>
+</ul>
+<section id="id3">
+<h3><span class="section-number">2.1.1. </span>变量<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h3>
+<section id="id4">
+<h4><span class="section-number">2.1.1.1. </span>普通变量<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h4>
+<ul class="simple">
+<li><p>和大多数语言一样，变量可以是中文字符，大小写字符，数字，和下划线(<code class="docutils literal notranslate"><span class="pre">_</span></code>)的组合，但是变量不允许由数字开头。<br />
+一个更精确的表达如下：</p></li>
+</ul>
+<div class="highlight-BNF notranslate"><div class="highlight"><pre><span></span>CN_ZH_LETTER: /[\u4e00-\u9fa5]/
+LETTER: UCASE_LETTER | LCASE_LETTER | CN_ZH_LETTER
+NAME : (&quot;_&quot;|LETTER) (&quot;_&quot;|LETTER|DIGIT)*
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>变量不需要声明即可使用。</p></li>
+</ul>
+</section>
+<section id="id5">
+<h4><span class="section-number">2.1.1.2. </span>作用域<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h4>
+<p>与大多数语言不同，这里变量没有作用域。如果出现重名会产生覆盖的问题。</p>
+</section>
+<section id="id6">
+<h4><span class="section-number">2.1.1.3. </span>$变量<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h4>
+<p>命令行传参和正则表达式结果可以通过$轻松获得。</p>
+<section id="id7">
+<h5><span class="section-number">2.1.1.3.1. </span>命令行传参<a class="headerlink" href="#id7" title="永久链接至标题">¶</a></h5>
+<p>命令行传参只能在编译后的文件上传入。<br />
+首先需要通过<code class="docutils literal notranslate"><span class="pre">arg_seq_add</span></code>和<code class="docutils literal notranslate"><span class="pre">arg_option_add</span></code>显式地定义参数。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arg_seq_add</span><span class="p">(</span><span class="s2">&quot;arg1&quot;</span><span class="p">)</span> <span class="c1">## 第一个顺序参数</span>
+<span class="n">arg_seq_add</span><span class="p">(</span><span class="s2">&quot;arg2&quot;</span><span class="p">)</span> <span class="c1">## 第二个</span>
+<span class="n">arg_option_add</span><span class="p">(</span><span class="s2">&quot;option&quot;</span><span class="p">,</span><span class="s2">&quot;o&quot;</span><span class="p">)</span> <span class="c1">## --option 或者 -o</span>
+</pre></div>
+</div>
+<p>这样，编译运行后，我们就可以通过<span class="math notranslate nohighlight">\(快速访问这些变量。  
+例如，对于`arg1`，你可以通过`\)</span>1<code class="docutils literal notranslate"><span class="pre">或者</span></code><span class="math notranslate nohighlight">\(arg1`取得；
+对于`arg2`，你可以通过`\)</span>2<code class="docutils literal notranslate"><span class="pre">或者</span></code><span class="math notranslate nohighlight">\(arg2`取得；  
+对于`option`，可以通过`\)</span>option`取得，</p>
+</section>
+<section id="id8">
+<h5><span class="section-number">2.1.1.3.2. </span>正则表达式<a class="headerlink" href="#id8" title="永久链接至标题">¶</a></h5>
+<p>正则表达式主要用于匹配数据。在完成匹配后，会把结果绑定到<code class="docutils literal notranslate"><span class="pre">$mg0</span></code>,<code class="docutils literal notranslate"><span class="pre">$mg1</span></code>..上面。<br />
+其中<code class="docutils literal notranslate"><span class="pre">$mg</span></code>的个数取决于正则表达式组的个数。
+比如，下面的正则表达式匹配浮点数。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/(\d+).(\d+)/
+匹配3.14
+$mg0 = 3.14
+$mg1 = 3
+$mg2 = 14
+</pre></div>
+</div>
+<p>注意，由于只有一个作用域，<code class="docutils literal notranslate"><span class="pre">$mg</span></code>的结果不会被清空掉。第二次匹配发生时，可能仍能访问到之前的结果。<br />
+此外，如果有参数名字叫<code class="docutils literal notranslate"><span class="pre">$mg</span></code>，那么编译器会报错</p>
+</section>
+<section id="id9">
+<h5><span class="section-number">2.1.1.3.3. </span>其他<a class="headerlink" href="#id9" title="永久链接至标题">¶</a></h5>
+<p>目前只绑定了<code class="docutils literal notranslate"><span class="pre">$PWD</span></code>。这是程序运行的路径</p>
+</section>
+</section>
+</section>
+<section id="id10">
+<h3><span class="section-number">2.1.2. </span>字符串<a class="headerlink" href="#id10" title="永久链接至标题">¶</a></h3>
+<p>和python类似，支持单行字符串，也支持<code class="docutils literal notranslate"><span class="pre">&quot;&quot;&quot;</span></code>构成的多行字符串</p>
+</section>
+<section id="id11">
+<h3><span class="section-number">2.1.3. </span>注释<a class="headerlink" href="#id11" title="永久链接至标题">¶</a></h3>
+<p>和python类似，使用<code class="docutils literal notranslate"><span class="pre">#</span></code>作为注释</p>
+</section>
+</section>
+<section id="id12">
+<h2><span class="section-number">2.2. </span>运算符<a class="headerlink" href="#id12" title="永久链接至标题">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">samoyed</span></code>支持大多数基本运算</p>
+<section id="id13">
+<h3><span class="section-number">2.2.1. </span>符号<a class="headerlink" href="#id13" title="永久链接至标题">¶</a></h3>
+<p>支持正负号
+如果对字符串，None添加负号会报错</p>
+</section>
+<section id="id14">
+<h3><span class="section-number">2.2.2. </span>四则运算<a class="headerlink" href="#id14" title="永久链接至标题">¶</a></h3>
+<p>支持<code class="docutils literal notranslate"><span class="pre">+</span></code>,<code class="docutils literal notranslate"><span class="pre">-</span></code>,<code class="docutils literal notranslate"><span class="pre">*</span></code>,<code class="docutils literal notranslate"><span class="pre">/</span></code>,<code class="docutils literal notranslate"><span class="pre">//</span></code>,<code class="docutils literal notranslate"><span class="pre">%</span></code>运算</p>
+</section>
+<section id="id15">
+<h3><span class="section-number">2.2.3. </span>逻辑运算<a class="headerlink" href="#id15" title="永久链接至标题">¶</a></h3>
+<p>支持<code class="docutils literal notranslate"><span class="pre">and</span></code>,<code class="docutils literal notranslate"><span class="pre">or</span></code>,<code class="docutils literal notranslate"><span class="pre">not</span></code></p>
+</section>
+<section id="id16">
+<h3><span class="section-number">2.2.4. </span>三目表达式<a class="headerlink" href="#id16" title="永久链接至标题">¶</a></h3>
+<p>三目表达式的形式比较接近c++</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>bool_expr?expr1:expr2
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h3><span class="section-number">2.2.5. </span>运算符优先级<a class="headerlink" href="#id17" title="永久链接至标题">¶</a></h3>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>优先级（越小越高）</p></th>
+<th class="head"><p>符号</p></th>
+<th class="head"><p>结合性</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">括号()</span></code>,<code class="docutils literal notranslate"><span class="pre">function</span></code></p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>正负号</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>乘除法，模(<code class="docutils literal notranslate"><span class="pre">%</span></code>)运算</p></td>
+<td><p>从左到右</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>加减法</p></td>
+<td><p>从左到右</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>比较符号(<code class="docutils literal notranslate"><span class="pre">&gt;</span></code>,<code class="docutils literal notranslate"><span class="pre">&gt;=</span></code>,<code class="docutils literal notranslate"><span class="pre">&lt;</span></code>,<code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>,<code class="docutils literal notranslate"><span class="pre">=</span></code>,<code class="docutils literal notranslate"><span class="pre">!=</span></code>)</p></td>
+<td><p>-</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">not</span></code>运算</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">and</span></code>运算</p></td>
+<td><p>从左到右</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">or</span></code>运算</p></td>
+<td><p>从左到右</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>三目表达式</p></td>
+<td><p>从左到右</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="id18">
+<h2><span class="section-number">2.3. </span>语句<a class="headerlink" href="#id18" title="永久链接至标题">¶</a></h2>
+<section id="id19">
+<h3><span class="section-number">2.3.1. </span>块和缩进<a class="headerlink" href="#id19" title="永久链接至标题">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">samoyed</span></code>和python的块缩进规则类似。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="n">a</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="n">state</span> <span class="n">b</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">c</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span><span class="p">:</span>
+            <span class="k">pass</span>
+</pre></div>
+</div>
+<p>下面的缩进是错误的：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="n">a</span><span class="p">:</span>
+    <span class="n">speak</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+   <span class="n">speak</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>同样也支持将tab转换成空格。默认tab转换为4个空格。</p>
+</section>
+<section id="state">
+<h3><span class="section-number">2.3.2. </span>state语句<a class="headerlink" href="#state" title="永久链接至标题">¶</a></h3>
+<p>state是<code class="docutils literal notranslate"><span class="pre">samoyed</span></code>的基本组成部分。<br />
+state可以看成是有限状态机的声明。<br />
+一个有效的程序，最外层除了<strong>简单语句</strong>，就是state语句。其中，简单语句会在开始执行前就被<strong>全部执行</strong>，无论它在前面还是后面。<br />
+这里简单语句指的是赋值语句或者表达式。
+例如：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">state</span> <span class="n">main</span><span class="p">:</span>
+    <span class="n">speak</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>结果会是a=2</p>
+<section id="main">
+<h4><span class="section-number">2.3.2.1. </span>main<a class="headerlink" href="#main" title="永久链接至标题">¶</a></h4>
+<p>每一个程序必须要有一个起始状态。这里main就是唯一的起始状态。<br />
+如果缺少main，解释器会报错</p>
+</section>
+</section>
+<section id="if">
+<h3><span class="section-number">2.3.3. </span>if语句<a class="headerlink" href="#if" title="永久链接至标题">¶</a></h3>
+<p>和python语言的if类似：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">expr</span> <span class="p">:</span>
+    <span class="n">do_some_thing</span>
+    
+<span class="c1">## 或者</span>
+<span class="k">if</span> <span class="n">expr</span><span class="p">:</span>
+    <span class="n">do</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">do_other</span>
+</pre></div>
+</div>
+</section>
+<section id="pass">
+<h3><span class="section-number">2.3.4. </span>pass<a class="headerlink" href="#pass" title="永久链接至标题">¶</a></h3>
+<p>简单的占位功能</p>
+</section>
+<section id="branch">
+<h3><span class="section-number">2.3.5. </span>branch<a class="headerlink" href="#branch" title="永久链接至标题">¶</a></h3>
+<p>跳转语句<br />
+使用方法是<code class="docutils literal notranslate"><span class="pre">branch</span> <span class="pre">a_state</span></code><br />
+例如：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="n">A</span><span class="p">:</span>
+    <span class="n">branch</span> <span class="n">B</span>
+<span class="n">state</span> <span class="n">B</span><span class="p">:</span>
+    <span class="n">branch</span> <span class="n">C</span>
+<span class="n">state</span> <span class="n">C</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>如果<code class="docutils literal notranslate"><span class="pre">a_state</span></code>不存在，会抛出异常。<br />
+对于一个state，当它执行完所有语句时，如果没有branch，那么它会默认退出。例如这里的<code class="docutils literal notranslate"><span class="pre">state</span> <span class="pre">C</span></code></p>
+<p>branch和goto类似。</p>
+<p>如果branch在复杂语句(比如<code class="docutils literal notranslate"><span class="pre">match</span></code>,<code class="docutils literal notranslate"><span class="pre">if</span></code>)，它也会马上执行跳转</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="n">A</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">expr</span><span class="p">:</span>
+        <span class="n">speak</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+        <span class="n">branch</span> <span class="n">B</span>
+        <span class="n">speak</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+<p>将会打印<code class="docutils literal notranslate"><span class="pre">A</span></code>.</p>
+</section>
+<section id="match">
+<h3><span class="section-number">2.3.6. </span>match语句<a class="headerlink" href="#match" title="永久链接至标题">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">match</span></code>语句有两种用法。第一种用法是<code class="docutils literal notranslate"><span class="pre">switch</span></code>类似，第二种用法则带有时间控制。</p>
+<section id="id20">
+<h4><span class="section-number">2.3.6.1. </span>普通匹配match<a class="headerlink" href="#id20" title="永久链接至标题">¶</a></h4>
+<p>这种match的格式是：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">match</span> <span class="n">expr</span><span class="p">:</span>
+    <span class="n">expr1</span> <span class="o">=&gt;</span>
+        <span class="n">statement1</span>    
+    <span class="n">expr2</span> <span class="o">=&gt;</span>
+        <span class="n">statement2</span>
+    <span class="o">...</span>
+    <span class="n">default</span> <span class="o">=&gt;</span>
+        <span class="n">statement</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">match</span></code>只会触发一次.并且采用顺序匹配。</p>
+<section id="id21">
+<h5><span class="section-number">2.3.6.1.1. </span>branch缩写<a class="headerlink" href="#id21" title="永久链接至标题">¶</a></h5>
+<p>对于branch语句，允许简写成：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">expr1</span> <span class="o">=&gt;</span> <span class="n">branch</span> <span class="n">A</span>
+</pre></div>
+</div>
+</section>
+<section id="id22">
+<h5><span class="section-number">2.3.6.1.2. </span>子串<a class="headerlink" href="#id22" title="永久链接至标题">¶</a></h5>
+<p>每个case的判断条件如果是字符串，且被判断的表达式也是字符串，那么不需要完全匹配，只需要case字符串是被判断字符串的子串即可。
+例如：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">match</span> <span class="s2">&quot;hello world&quot;</span><span class="p">:</span>
+     <span class="s2">&quot;hello&quot;</span> <span class="o">=&gt;</span>
+        <span class="n">speak</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+     <span class="s2">&quot;world&quot;</span> <span class="o">=&gt;</span>
+        <span class="n">speak</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">)</span>
+     <span class="n">default</span> <span class="o">=&gt;</span>
+        <span class="n">speak</span><span class="p">(</span><span class="s2">&quot;3&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>输出<code class="docutils literal notranslate"><span class="pre">1</span></code>.<br />
+注意<code class="docutils literal notranslate"><span class="pre">match</span></code>只会触发一次.并且采用顺序匹配。</p>
+</section>
+<section id="id23">
+<h5><span class="section-number">2.3.6.1.3. </span>正则表达式<a class="headerlink" href="#id23" title="永久链接至标题">¶</a></h5>
+<p>此外，case的判断条件允许是正则表达式。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>match &quot;hello world&quot;:
+     /hello(.+)d/ =&gt;
+        speak($mg0)
+        speak($mg1)        
+     &quot;world&quot; =&gt;
+        speak(&quot;2&quot;)
+     default =&gt;
+        speak(&quot;3&quot;)
+</pre></div>
+</div>
+<p>输出<code class="docutils literal notranslate"><span class="pre">hello</span> <span class="pre">world</span></code>和<code class="docutils literal notranslate">&#160; <span class="pre">worl</span></code>(前面有个空格)</p>
+</section>
+</section>
+<section id="id24">
+<h4><span class="section-number">2.3.6.2. </span>带时间控制的match<a class="headerlink" href="#id24" title="永久链接至标题">¶</a></h4>
+<p>这种match的格式是</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">match</span> <span class="o">@</span><span class="p">()</span><span class="n">func</span><span class="p">():</span>
+    <span class="n">expr1</span> <span class="o">=&gt;</span>
+        <span class="n">st1</span>
+    <span class="o">...</span>
+    <span class="n">silence</span> <span class="o">=&gt;</span>
+        <span class="n">stn</span>
+</pre></div>
+</div>
+<p>其中，&#64;()表达式是时间控制表达式，我称它为<code class="docutils literal notranslate"><span class="pre">at</span> <span class="pre">expression</span></code>.</p>
+<section id="expression">
+<h5><span class="section-number">2.3.6.2.1. </span>&#64; expression<a class="headerlink" href="#expression" title="永久链接至标题">¶</a></h5>
+<p>&#64;()至少要传入一个参数，表示超时的时间。
+最多可以传入四个参数，剩下三个分别代表</p>
+<ul class="simple">
+<li><p>匹配开始时间（最早退出时间）</p></li>
+<li><p>函数超时时间（<code class="docutils literal notranslate"><span class="pre">func</span></code>允许运行的最大时间）</p></li>
+<li><p>睡眠时间（表达式一直在循环判断，可以给一个时间等待，避免浪费计算资源）
+一般只需用前两个参数即可</p></li>
+</ul>
+</section>
+<section id="id25">
+<h5><span class="section-number">2.3.6.2.2. </span>流匹配<a class="headerlink" href="#id25" title="永久链接至标题">¶</a></h5>
+<p>和之前的match不同，这里会不断运行函数，产生一个“流”。以listen为例，假设我们在分别输入了<code class="docutils literal notranslate"><span class="pre">hel</span></code>,<code class="docutils literal notranslate"><span class="pre">lo</span></code>.<br />
+内部的结果队列就会形如[<code class="docutils literal notranslate"><span class="pre">&quot;hel&quot;</span></code>,<code class="docutils literal notranslate"><span class="pre">&quot;lo&quot;</span></code>]。每次比较时，把结果队列拼接在一起进行判断。<br />
+第一次是<code class="docutils literal notranslate"><span class="pre">&quot;hel&quot;</span></code>，第二次则为<code class="docutils literal notranslate"><span class="pre">hello</span></code></p>
+</section>
+<section id="example">
+<h5><span class="section-number">2.3.6.2.3. </span>example<a class="headerlink" href="#example" title="永久链接至标题">¶</a></h5>
+<p>例如:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="n">main</span><span class="p">:</span>
+    <span class="o">@</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="n">listen</span><span class="p">():</span>
+        <span class="s2">&quot;stop&quot;</span> <span class="o">=&gt;</span>
+            <span class="k">pass</span>
+        <span class="n">silence</span> <span class="o">=&gt;</span>
+            <span class="n">branch</span> <span class="n">main</span>
+</pre></div>
+</div>
+<p>上面这段代码表示，将会监听<code class="docutils literal notranslate"><span class="pre">stdin</span></code>最多5秒钟，持续匹配结果，同时，最少2s才会给出结果。如果匹配成功，终止运行。<br />
+用字典<code class="docutils literal notranslate"><span class="pre">Dict[Int,Str]</span></code>表示第is输入的字符串。<br />
+那么：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;stop&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;st&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">:</span><span class="s2">&quot;op&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;st&quot;</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="s2">&quot;oo&quot;</span><span class="p">,</span><span class="mi">4</span><span class="p">:</span><span class="s2">&quot;stop&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>都是会结束执行的。
+而</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;stoooooooooooop&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s2">&quot;st&quot;</span><span class="p">,</span><span class="mf">4.9</span><span class="p">:</span><span class="s2">&quot;o&quot;</span><span class="p">,</span><span class="mi">5</span><span class="p">:</span><span class="s2">&quot;p&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>则会超时，
+同时，第一个例子得到2s才会匹配成功，结束程序</p>
+</section>
+</section>
+</section>
+</section>
+<section id="id26">
+<h2><span class="section-number">2.4. </span>内置函数<a class="headerlink" href="#id26" title="永久链接至标题">¶</a></h2>
+<section id="listen">
+<h3><span class="section-number">2.4.1. </span><code class="docutils literal notranslate"><span class="pre">listen</span></code><a class="headerlink" href="#listen" title="永久链接至标题">¶</a></h3>
+<p>内部实现即<code class="docutils literal notranslate"><span class="pre">input</span></code>。阻塞地从<code class="docutils literal notranslate"><span class="pre">stdin</span></code>中读入一行。</p>
+<p>注意，listen可能导致程序<strong>长时间阻塞</strong>。建议搭配<code class="docutils literal notranslate"><span class="pre">&#64;</span></code>表达式使用</p>
+</section>
+<section id="speak-str">
+<h3><span class="section-number">2.4.2. </span><code class="docutils literal notranslate"><span class="pre">speak(str)</span></code><a class="headerlink" href="#speak-str" title="永久链接至标题">¶</a></h3>
+<p>内部实现即<code class="docutils literal notranslate"><span class="pre">print</span></code>。在<code class="docutils literal notranslate"><span class="pre">stdout</span></code>中输出一行</p>
+</section>
+<section id="print-str">
+<h3><span class="section-number">2.4.3. </span><code class="docutils literal notranslate"><span class="pre">print(str)</span></code><a class="headerlink" href="#print-str" title="永久链接至标题">¶</a></h3>
+<p>内部实现为<code class="docutils literal notranslate"><span class="pre">sys.stderr.write</span></code>。在<code class="docutils literal notranslate"><span class="pre">stderr</span></code>中输出一行</p>
+</section>
+<section id="exit-int">
+<h3><span class="section-number">2.4.4. </span><code class="docutils literal notranslate"><span class="pre">exit(int)</span></code><a class="headerlink" href="#exit-int" title="永久链接至标题">¶</a></h3>
+<p>内部实现为<code class="docutils literal notranslate"><span class="pre">sys.exit</span></code>。会立刻退出程序。</p>
+<p>可以传入一个值表示返回值。默认为0</p>
+</section>
+<section id="arg-seq-add-name-help-msg">
+<h3><span class="section-number">2.4.5. </span><code class="docutils literal notranslate"><span class="pre">arg_seq_add(name,help_msg)</span></code><a class="headerlink" href="#arg-seq-add-name-help-msg" title="永久链接至标题">¶</a></h3>
+<p>添加一个顺序参数。在解释执行中这个函数没有作用。</p>
+<p>例如：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arg_seq_add</span><span class="p">(</span><span class="s2">&quot;arg1&quot;</span><span class="p">)</span> <span class="c1">## 第一个顺序参数</span>
+<span class="n">arg_seq_add</span><span class="p">(</span><span class="s2">&quot;arg2&quot;</span><span class="p">)</span> <span class="c1">## 第二个</span>
+</pre></div>
+</div>
+</section>
+<section id="arg-option-add-full-name-short-name-help-msg">
+<h3><span class="section-number">2.4.6. </span><code class="docutils literal notranslate"><span class="pre">arg_option_add(full_name,short_name,help_msg)</span></code><a class="headerlink" href="#arg-option-add-full-name-short-name-help-msg" title="永久链接至标题">¶</a></h3>
+<p>添加一个可选参数。在解释执行中这个函数没有作用。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arg_option_add</span><span class="p">(</span><span class="s2">&quot;option&quot;</span><span class="p">,</span><span class="s2">&quot;o&quot;</span><span class="p">)</span> <span class="c1">## --option 或者 -o</span>
+</pre></div>
+</div>
+</section>
+<section id="sqlite-connect-db-name">
+<h3><span class="section-number">2.4.7. </span><code class="docutils literal notranslate"><span class="pre">sqlite_connect(db_name)</span></code><a class="headerlink" href="#sqlite-connect-db-name" title="永久链接至标题">¶</a></h3>
+<p>连接到sqlite数据库。</p>
+<p><code class="docutils literal notranslate"><span class="pre">db_name</span></code>参数指的是数据库的路径。</p>
+<p>会返回一个cursor</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cursor</span> <span class="o">=</span> <span class="n">sqlite_connect</span><span class="p">(</span><span class="s2">&quot;test.db&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="sqlite-cursor-sql">
+<h3><span class="section-number">2.4.8. </span><code class="docutils literal notranslate"><span class="pre">sqlite(cursor,sql)</span></code><a class="headerlink" href="#sqlite-cursor-sql" title="永久链接至标题">¶</a></h3>
+<p>执行一条sql语句。需要带上上面获取的cursor</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sqlite</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span><span class="s2">&quot;SELECT * FROM sqlite_master&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="eval-str">
+<h3><span class="section-number">2.4.9. </span><code class="docutils literal notranslate"><span class="pre">eval(str)</span></code><a class="headerlink" href="#eval-str" title="永久链接至标题">¶</a></h3>
+<p>执行一条简单的python<strong>表达式</strong>。注意是表达式，语句是无法执行的。</p>
+<p>默认会传入全局的命名域。</p>
+<p>比如：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">x</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;x**2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这时x=4</p>
+<p>使用eval也可以使用<code class="docutils literal notranslate"><span class="pre">exec</span></code>。比如</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">x</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s2">&quot;exec(&#39;import math&#39;) or math.sqrt(x)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>结果是1.414</p>
+<p>因此使用eval是有风险的。它可以篡改程序的执行流（当然，它访问不到解释器），因此可能导致程序崩溃。</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">目录</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">2. 语法参考</a><ul>
+<li><a class="reference internal" href="#id2">2.1. 基本类型</a><ul>
+<li><a class="reference internal" href="#id3">2.1.1. 变量</a><ul>
+<li><a class="reference internal" href="#id4">2.1.1.1. 普通变量</a></li>
+<li><a class="reference internal" href="#id5">2.1.1.2. 作用域</a></li>
+<li><a class="reference internal" href="#id6">2.1.1.3. $变量</a><ul>
+<li><a class="reference internal" href="#id7">2.1.1.3.1. 命令行传参</a></li>
+<li><a class="reference internal" href="#id8">2.1.1.3.2. 正则表达式</a></li>
+<li><a class="reference internal" href="#id9">2.1.1.3.3. 其他</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">2.1.2. 字符串</a></li>
+<li><a class="reference internal" href="#id11">2.1.3. 注释</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id12">2.2. 运算符</a><ul>
+<li><a class="reference internal" href="#id13">2.2.1. 符号</a></li>
+<li><a class="reference internal" href="#id14">2.2.2. 四则运算</a></li>
+<li><a class="reference internal" href="#id15">2.2.3. 逻辑运算</a></li>
+<li><a class="reference internal" href="#id16">2.2.4. 三目表达式</a></li>
+<li><a class="reference internal" href="#id17">2.2.5. 运算符优先级</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id18">2.3. 语句</a><ul>
+<li><a class="reference internal" href="#id19">2.3.1. 块和缩进</a></li>
+<li><a class="reference internal" href="#state">2.3.2. state语句</a><ul>
+<li><a class="reference internal" href="#main">2.3.2.1. main</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#if">2.3.3. if语句</a></li>
+<li><a class="reference internal" href="#pass">2.3.4. pass</a></li>
+<li><a class="reference internal" href="#branch">2.3.5. branch</a></li>
+<li><a class="reference internal" href="#match">2.3.6. match语句</a><ul>
+<li><a class="reference internal" href="#id20">2.3.6.1. 普通匹配match</a><ul>
+<li><a class="reference internal" href="#id21">2.3.6.1.1. branch缩写</a></li>
+<li><a class="reference internal" href="#id22">2.3.6.1.2. 子串</a></li>
+<li><a class="reference internal" href="#id23">2.3.6.1.3. 正则表达式</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id24">2.3.6.2. 带时间控制的match</a><ul>
+<li><a class="reference internal" href="#expression">2.3.6.2.1. &#64; expression</a></li>
+<li><a class="reference internal" href="#id25">2.3.6.2.2. 流匹配</a></li>
+<li><a class="reference internal" href="#example">2.3.6.2.3. example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id26">2.4. 内置函数</a><ul>
+<li><a class="reference internal" href="#listen">2.4.1. <code class="docutils literal notranslate"><span class="pre">listen</span></code></a></li>
+<li><a class="reference internal" href="#speak-str">2.4.2. <code class="docutils literal notranslate"><span class="pre">speak(str)</span></code></a></li>
+<li><a class="reference internal" href="#print-str">2.4.3. <code class="docutils literal notranslate"><span class="pre">print(str)</span></code></a></li>
+<li><a class="reference internal" href="#exit-int">2.4.4. <code class="docutils literal notranslate"><span class="pre">exit(int)</span></code></a></li>
+<li><a class="reference internal" href="#arg-seq-add-name-help-msg">2.4.5. <code class="docutils literal notranslate"><span class="pre">arg_seq_add(name,help_msg)</span></code></a></li>
+<li><a class="reference internal" href="#arg-option-add-full-name-short-name-help-msg">2.4.6. <code class="docutils literal notranslate"><span class="pre">arg_option_add(full_name,short_name,help_msg)</span></code></a></li>
+<li><a class="reference internal" href="#sqlite-connect-db-name">2.4.7. <code class="docutils literal notranslate"><span class="pre">sqlite_connect(db_name)</span></code></a></li>
+<li><a class="reference internal" href="#sqlite-cursor-sql">2.4.8. <code class="docutils literal notranslate"><span class="pre">sqlite(cursor,sql)</span></code></a></li>
+<li><a class="reference internal" href="#eval-str">2.4.9. <code class="docutils literal notranslate"><span class="pre">eval(str)</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>上一个主题</h4>
+  <p class="topless"><a href="quick_start.html"
+                        title="上一章"><span class="section-number">1. </span>quick start</a></p>
+  <h4>下一个主题</h4>
+  <p class="topless"><a href="compile.html"
+                        title="下一章"><span class="section-number">3. </span>编译</a></p>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/lang_ref.md.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="转向" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总目录"
+             >索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="compile.html" title="3. 编译"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="quick_start.html" title="1. quick start"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">2. </span>语法参考</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; 版权所有 2021, ruiqurm.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+    </div>
+  </body>
+</html>

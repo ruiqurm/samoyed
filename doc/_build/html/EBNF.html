@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+
+<html lang="zh_CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>5. EBNF &#8212; samoyed  文档</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/translations.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="prev" title="4. 设计与实现" href="design.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总目录"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="4. 设计与实现"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">5. </span>EBNF</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="ebnf">
+<h1><span class="section-number">5. </span>EBNF<a class="headerlink" href="#ebnf" title="永久链接至标题">¶</a></h1>
+<p>下面是一个lark风格的<code class="docutils literal notranslate"><span class="pre">EBNF</span></code>。和标准的EBNF不完全一致。
+其中非终结符的<code class="docutils literal notranslate"><span class="pre">?</span></code>,<code class="docutils literal notranslate"><span class="pre">_</span></code>可以忽略认为它们没有效果。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>start: (_NEWLINE | stmt)*
+?stmt: simple_stmt | statedef
+?inner_stmt : simple_stmt| match_stmt | for_stmt | if_stmt
+simple_stmt: small_stmt _NEWLINE
+full_expr : _full_expr
+?small_stmt : pass_expr | branch_expr | _full_expr |assign_expr |break_stmt|continue_stmt
+_suite:  _NEWLINE _INDENT inner_stmt+ _DEDENT
+statedef: &quot;state&quot; NAME  &quot;:&quot; _suite
+match_stmt : &quot;match&quot; _full_expr &quot;:&quot; _NEWLINE _INDENT case_stmt+ default_stmt? _DEDENT |  &quot;match&quot; at_expr &quot;:&quot; _NEWLINE _INDENT case_stmt+ silence_stmt? _DEDENT
+case_stmt:  [_full_expr | reg]  &quot;=&gt;&quot; _NEWLINE _INDENT inner_stmt+ _DEDENT | [_full_expr | reg] &quot;=&gt;&quot; branch_expr
+default_stmt : &quot;default&quot; &quot;=&gt;&quot; _NEWLINE _INDENT inner_stmt+ _DEDENT | &quot;default&quot; &quot;=&gt;&quot; branch_expr
+silence_stmt : &quot;silence&quot; &quot;=&gt;&quot; _NEWLINE _INDENT inner_stmt+ _DEDENT | &quot;silence&quot; &quot;=&gt;&quot; branch_expr
+for_stmt : &quot;for&quot; NAME &quot;=&quot; _full_expr &quot;to&quot; _full_expr  &quot;:&quot;  _NEWLINE _INDENT inner_stmt+ _DEDENT
+if_stmt : &quot;if&quot; _full_expr &quot;:&quot; _NEWLINE _INDENT if_true_stmt _DEDENT (&quot;else&quot; &quot;:&quot; _NEWLINE _INDENT else_true_stmt+ _DEDENT)?
+if_true_stmt : inner_stmt+
+else_true_stmt : inner_stmt+
+pass_expr : &quot;pass&quot;
+branch_expr : &quot;branch&quot; NAME
+continue_stmt : &quot;continue&quot;
+break_stmt : &quot;break&quot;
+assign_expr : NAME assign_op _full_expr
+parameters: _NEWLINE* _full_expr (&quot;,&quot; _NEWLINE* _full_expr)*
+at_expr_parameter :  INT (&quot;,&quot;INT)?
+at_expr : &quot;@&quot;&quot;(&quot; at_expr_parameter &quot;)&quot; NAME &quot;(&quot; [parameters] &quot;)&quot;
+_full_expr: or_test | conditional_expr
+conditional_expr:or_test &quot;?&quot; or_test &quot;:&quot; _full_expr
+?or_test: and_test (&quot;or&quot; and_test)*
+?and_test: not_test_ (&quot;and&quot; not_test_)*
+?not_test_: &quot;not&quot; not_test_ -&gt; not_test
+         | compare_expr
+?compare_expr: plus_expr (comp_op plus_expr)?
+?plus_expr : mul_expr (add_op mul_expr)*
+?mul_expr : factor (mul_op factor)*
+?factor : _unary_op factor | atom
+!comp_op : &quot;&lt;&quot;|&quot;&gt;&quot;|&quot;==&quot;|&quot;&gt;=&quot;|&quot;&lt;=&quot;|&quot;!=&quot;
+!add_op : &quot;+&quot;|&quot;-&quot;
+!mul_op : &quot;*&quot;|&quot;/&quot;|&quot;//&quot;|&quot;%&quot;
+!assign_op : &quot;=&quot;
+!_unary_op: &quot;+&quot;|&quot;-&quot;
+?atom :   &quot;(&quot; _full_expr &quot;)&quot;
+          | FLOAT
+          | INT
+          | STR
+          | NAME
+          | &quot;none&quot; -&gt; none
+          | &quot;true&quot; -&gt; true
+          | &quot;false&quot; -&gt; false
+          | NAME &quot;(&quot; [parameters] &quot;)&quot; -&gt; funccall
+          | DOLLAR_VAR
+STR : (STRING | LONG_STRING)+
+DOLLAR_VAR : &quot;$&quot; NAME
+CN_ZH_LETTER: /[\u4e00-\u9fa5]/
+LETTER: UCASE_LETTER | LCASE_LETTER | CN_ZH_LETTER
+NAME : (&quot;_&quot;|LETTER) (&quot;_&quot;|LETTER|DIGIT)*
+
+%import common.WS_INLINE
+%import common.FLOAT -&gt; FLOAT
+%import common.DIGIT -&gt; DIGIT
+%import common.LCASE_LETTER -&gt; LCASE_LETTER
+%import common.UCASE_LETTER -&gt; UCASE_LETTER
+%import common.INT -&gt; INT
+
+%declare _INDENT _DEDENT
+%ignore WS_INLINE
+%ignore COMMENT
+
+reg : &quot;/&quot; /[^\/\n]+/ &quot;/&quot;
+COMMENT: /#[^\n]*/
+_NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
+STRING: /[ubf]?r?(&quot;(?!&quot;&quot;).*?(?&lt;!\\)(\\\\)*?&quot;|&#39;(?!&#39;&#39;).*?(?&lt;!\\)(\\\\)*?&#39;)/i
+LONG_STRING: /[ubf]?r?(&quot;&quot;&quot;.*?(?&lt;!\\)(\\\\)*?&quot;&quot;&quot;|&#39;&#39;&#39;.*?(?&lt;!\\)(\\\\)*?&#39;&#39;&#39;)/is
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>上一个主题</h4>
+  <p class="topless"><a href="design.html"
+                        title="上一章"><span class="section-number">4. </span>设计与实现</a></p>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/EBNF.md.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="转向" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总目录"
+             >索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="4. 设计与实现"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">5. </span>EBNF</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; 版权所有 2021, ruiqurm.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+    </div>
+  </body>
+</html>

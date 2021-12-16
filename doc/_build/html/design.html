@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+
+<html lang="zh_CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>4. 设计与实现 &#8212; samoyed  文档</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/translations.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="next" title="5. EBNF" href="EBNF.html" />
+    <link rel="prev" title="3. 编译" href="compile.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总目录"
+             accesskey="I">索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="EBNF.html" title="5. EBNF"
+             accesskey="N">下一页</a> |</li>
+        <li class="right" >
+          <a href="compile.html" title="3. 编译"
+             accesskey="P">上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">4. </span>设计与实现</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="id1">
+<h1><span class="section-number">4. </span>设计与实现<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<section id="id2">
+<h2><span class="section-number">4.1. </span>词法分析和语法分析<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">samoyed</span></code>使用<code class="docutils literal notranslate"><span class="pre">lark</span></code>的<code class="docutils literal notranslate"><span class="pre">lair</span></code>语法分析器解析代码。</p>
+<p><a class="reference external" href="https://lark-parser.readthedocs.io/en/latest/"><code class="docutils literal notranslate"><span class="pre">lark</span></code></a> 是一个现代的python解析库，lark可以解析任何上下文无关文法。</p>
+<p>使用<code class="docutils literal notranslate"><span class="pre">lark</span></code>一方面是避免重复造轮子，减少工作量；直接使用<code class="docutils literal notranslate"><span class="pre">EBNF</span></code>描述文法能更灵活地拓展DSL的文法。</p>
+<p>关于详细的EBNF文法，可以参考<a class="reference internal" href="EBNF.html"><span class="doc std std-doc">文档</span></a></p>
+</section>
+<section id="core-interpreter">
+<h2><span class="section-number">4.2. </span><code class="docutils literal notranslate"><span class="pre">core.Interpreter</span></code><a class="headerlink" href="#core-interpreter" title="永久链接至标题">¶</a></h2>
+<p>解释器是项目的核心。</p>
+<section id="id3">
+<h3><span class="section-number">4.2.1. </span>初始化<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h3>
+<p>解释器初始化时，如果外部传入的是代码，会使用解析器解析得到语法树。</p>
+<p>然后，解释器会建立一个上下文。上下文中包括一些内置的函数、外部传入的变量和解释器状态的信息。</p>
+<p>建立完上下文后，扫描一遍生成好的语法树，并确认所有的state和入口state(<code class="docutils literal notranslate"><span class="pre">main</span></code>)。对于<em>外部的语句</em>，解释器会直接将其执行。</p>
+</section>
+<section id="id4">
+<h3><span class="section-number">4.2.2. </span>执行语句<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h3>
+<p>可执行的语句有以下几种：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">simple_stmt</span></code> 简单的语句，包括:</p>
+<ul>
+<li><p>赋值</p></li>
+<li><p>跳转表达式</p></li>
+<li><p>pass表达式</p></li>
+<li><p>普通表达式</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">if_stmt</span></code></p></li>
+</ul>
+<p>if语句</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">match_stmt</span></code></p>
+<p>包括普通的match和可以控制输入时间的match</p>
+</li>
+</ul>
+<section id="simple-stmt">
+<h4><span class="section-number">4.2.2.1. </span><code class="docutils literal notranslate"><span class="pre">simple_stmt</span></code><a class="headerlink" href="#simple-stmt" title="永久链接至标题">¶</a></h4>
+<p>对于<code class="docutils literal notranslate"><span class="pre">simple_stmt</span></code>，其语法分析结果类似下面：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">simple_stmt</span>
+<span class="o">|</span>
+<span class="n">expr</span> 
+<span class="o">|</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>其中的赋值语句也类似，只是有两边：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>assign_expr
+   |
+┌───┬─────┐
+var =    expr
+</pre></div>
+</div>
+<p>因此只需要判断一下类型，然后调用计算表达式即可。</p>
+</section>
+<section id="if-stmt">
+<h4><span class="section-number">4.2.2.2. </span><code class="docutils literal notranslate"><span class="pre">if_stmt</span></code><a class="headerlink" href="#if-stmt" title="永久链接至标题">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    if_stmt
+        |
+┌───────┬─────────┐
+expr  true_st false_st
+</pre></div>
+</div>
+<p>首先计算expr的值，然后根据结果去执行<code class="docutils literal notranslate"><span class="pre">true_st</span></code>或者<code class="docutils literal notranslate"><span class="pre">false_st</span></code>。这里迭代块中的语句，递归调用执行即可。</p>
+</section>
+<section id="match-stmt">
+<h4><span class="section-number">4.2.2.3. </span><code class="docutils literal notranslate"><span class="pre">match_stmt</span></code><a class="headerlink" href="#match-stmt" title="永久链接至标题">¶</a></h4>
+<p>match有两种形式</p>
+<p>第一种形式是<strong>带有时间控制</strong>的匹配
+其中，&#64;的第一个参数是超时时间，必选；第二个参数是最少持续时间，可选；
+&#64;后应该接入一个函数调用。延时表达式会不断调用这个函数</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">match</span> <span class="o">@</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="n">funcall</span> <span class="p">:</span>
+	<span class="n">compare_expr</span> <span class="o">=&gt;</span>
+		<span class="n">stat</span>
+	<span class="o">...</span>
+	<span class="n">silence</span> <span class="o">=&gt;</span>
+		<span class="n">stat</span>
+</pre></div>
+</div>
+<p>这种形式下，语法树大概是这样的：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>            match_stmt
+                 |
+        ┌─────────────────────────────────┬────────────┬─────────────┐
+        expr0                          match_case1  match_case..  silence
+        |                                 |                          |
+        ┌────────┬─────────┐         ┌────┬──────┐                 ┌────┐
+        at_para func    func_para   expr1 stmt1  ...              stmt1  ...
+</pre></div>
+</div>
+<p>这种形式下，假定func是会<strong>一直产生值</strong>的。（当然，即使没产生也有响应机制防止其无限阻塞）</p>
+<p>这里会开启一个循环，每当func有新的值产生，就会进行一轮判断。如果有匹配，就执行值并结束匹配。</p>
+<p>这里支持子串匹配和正则表达式匹配。可以见<a class="reference internal" href="lang_ref.html"><span class="doc std std-doc">语法参考</span></a>。其具体实现只是多加了一层类型判断，并对对应类型比较和匹配。</p>
+<p>第二种形式是普通的多值匹配</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">match</span> <span class="n">expr</span> <span class="p">:</span>
+	<span class="n">compare_expr</span> <span class="o">=&gt;</span>
+		<span class="n">stat</span>
+	<span class="n">compare_expr</span> <span class="o">=&gt;</span>
+		<span class="n">stat</span>
+	<span class="n">default</span> <span class="o">=&gt;</span>
+		<span class="n">stat</span>	
+</pre></div>
+</div>
+<p>这个顺序比较即可，也不再赘述。</p>
+</section>
+</section>
+<section id="id5">
+<h3><span class="section-number">4.2.3. </span>计算表达式<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h3>
+<p>表达式是一个树状的结构，这里和执行语句类似，采用的是递归式的方法。</p>
+<p>如果传入的是一个终结符（叶子节点），那么提取出值返回即可。这里比较特殊的是变量。如果是一个变量则需要查询上下文。</p>
+<p>如果传入的是一些常量，直接返回即可（为什么会有常量呢，因为语法分析的时候还做了简单的语法制导，一些叶子节点被直接压缩成值）</p>
+<p>如果传入的是一棵树。</p>
+<p>判断它的类型，如果是简单的二元运算或者一元运算，例如：</p>
+<ul class="simple">
+<li><p>三目表达式</p></li>
+<li><p>逻辑非</p></li>
+<li><p>比较运算</p></li>
+<li><p>正负号</p></li>
+</ul>
+<p>那么直接操作即可。</p>
+<p>如果涉及到多个符号的，例如：</p>
+<ul class="simple">
+<li><p>逻辑与</p></li>
+<li><p>逻辑或</p></li>
+<li><p>四则运算</p></li>
+</ul>
+<p>那么使用reduce函数进行运算。</p>
+<p>这里四则运算使用的reduce和一般的reduce不太一样，它是形如下面的结构的：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="o">+</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span><span class="n">或者</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="o">*</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">//</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>一种比较函数式的想法是用交换x,y的方式：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">reduce</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这里没有采用这种形式，而是用另一种比较易懂的形式：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    从1开始，步长为2，每次应该都要取到函数</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">op</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">operand2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="nb">sum</span> <span class="o">=</span> <span class="n">op</span><span class="p">(</span><span class="nb">sum</span><span class="p">,</span> <span class="n">operand2</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="libs-timecontrol">
+<h2><span class="section-number">4.3. </span><code class="docutils literal notranslate"><span class="pre">libs.TimeControl</span></code><a class="headerlink" href="#libs-timecontrol" title="永久链接至标题">¶</a></h2>
+<p>这个类用于控制超时和最早允许退出的时间。</p>
+<p>这个类可以产生生成器实例，它的基本用法如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">TimeControl</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">t</span><span class="p">():</span>
+    <span class="c1"># i 是每次获取的结果</span>
+    <span class="c1"># 判断i....</span>
+    <span class="k">if</span> <span class="n">判断成功</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span> <span class="c1"># 关掉两个计时器</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+<p>其中t是一个生成器函数。</p>
+<p>它主要有三个工具成员</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_wait_timer</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_wait_timer</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">watch_dog</span></code></p></li>
+</ul>
+<p>前两者主要用于监控最大和最小时间，而第三者用于中断传入的函数。因为传入的函数可能因为阻塞永远无法唤醒。</p>
+<section id="watch-dog">
+<h3><span class="section-number">4.3.1. </span><code class="docutils literal notranslate"><span class="pre">watch_dog</span></code><a class="headerlink" href="#watch-dog" title="永久链接至标题">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">watch_dog</span></code>是一个装饰器。采用的内部信号唤醒的机制：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_handle_timeout</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+	<span class="k">raise</span> <span class="n">SamoyedTimeout</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timeout for function &#39;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">_handle_timeout</span><span class="p">)</span>
+<span class="n">signal</span><span class="o">.</span><span class="n">setitimer</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ITIMER_REAL</span><span class="p">,</span> <span class="n">seconds</span><span class="p">)</span>
+<span class="n">do_something</span><span class="o">...</span>
+<span class="c1"># 如果超时了，会调用_handle_timeout，继而抛出一个异常</span>
+</pre></div>
+</div>
+<p>利用这个机制，我们将超时的程序中断。</p>
+</section>
+<section id="timer">
+<h3><span class="section-number">4.3.2. </span><code class="docutils literal notranslate"><span class="pre">timer</span></code><a class="headerlink" href="#timer" title="永久链接至标题">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">timer</span></code>是一个普通的计时线程。当超过一个时间时，它会调用构造时传入的函数。利用这个机制，我们可以知道什么时候超时了。</p>
+<ul>
+<li><p>为什么需要两个超时？</p>
+<p>主要是一开始使用的是线程计时，后面发现信号计时的效果似乎也不错。信号计时可能会造成多级异常，因此这里没有采用两个信号计时</p>
+</li>
+</ul>
+</section>
+<section id="id6">
+<h3><span class="section-number">4.3.3. </span>函数体<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h3>
+<ul class="simple">
+<li><p>外层的try只用于处理<code class="docutils literal notranslate"><span class="pre">KeyboardInterrupt</span></code>，无其他用途</p></li>
+<li><p>每次取完数据，判断是否已经超时；超时则退出</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time.sleep</span></code>防止空转。</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 外层的try只用于处理KeyboardInterrupt，无其他用途</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># 尝试执行函数</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">timeout_on_interval</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">SamoyedTimeout</span><span class="p">:</span>
+            <span class="c1"># 如果超时，返回None</span>
+            <span class="k">yield</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">result</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SamoyedRuntimeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 否则，返回结果</span>
+            <span class="k">yield</span> <span class="n">result</span>
+
+        <span class="c1"># 如果函数执行时间已经超时，那么退出</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="c1"># 睡眠，防止频繁运行</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_interval</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+    <span class="k">raise</span> <span class="ne">KeyboardInterrupt</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">目录</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">4. 设计与实现</a><ul>
+<li><a class="reference internal" href="#id2">4.1. 词法分析和语法分析</a></li>
+<li><a class="reference internal" href="#core-interpreter">4.2. <code class="docutils literal notranslate"><span class="pre">core.Interpreter</span></code></a><ul>
+<li><a class="reference internal" href="#id3">4.2.1. 初始化</a></li>
+<li><a class="reference internal" href="#id4">4.2.2. 执行语句</a><ul>
+<li><a class="reference internal" href="#simple-stmt">4.2.2.1. <code class="docutils literal notranslate"><span class="pre">simple_stmt</span></code></a></li>
+<li><a class="reference internal" href="#if-stmt">4.2.2.2. <code class="docutils literal notranslate"><span class="pre">if_stmt</span></code></a></li>
+<li><a class="reference internal" href="#match-stmt">4.2.2.3. <code class="docutils literal notranslate"><span class="pre">match_stmt</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">4.2.3. 计算表达式</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#libs-timecontrol">4.3. <code class="docutils literal notranslate"><span class="pre">libs.TimeControl</span></code></a><ul>
+<li><a class="reference internal" href="#watch-dog">4.3.1. <code class="docutils literal notranslate"><span class="pre">watch_dog</span></code></a></li>
+<li><a class="reference internal" href="#timer">4.3.2. <code class="docutils literal notranslate"><span class="pre">timer</span></code></a></li>
+<li><a class="reference internal" href="#id6">4.3.3. 函数体</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>上一个主题</h4>
+  <p class="topless"><a href="compile.html"
+                        title="上一章"><span class="section-number">3. </span>编译</a></p>
+  <h4>下一个主题</h4>
+  <p class="topless"><a href="EBNF.html"
+                        title="下一章"><span class="section-number">5. </span>EBNF</a></p>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/design.md.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="转向" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>导航</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="总目录"
+             >索引</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python 模块索引"
+             >模块</a> |</li>
+        <li class="right" >
+          <a href="EBNF.html" title="5. EBNF"
+             >下一页</a> |</li>
+        <li class="right" >
+          <a href="compile.html" title="3. 编译"
+             >上一页</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">samoyed  文档</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><span class="section-number">4. </span>设计与实现</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; 版权所有 2021, ruiqurm.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.3.1.
+    </div>
+  </body>
+</html>
