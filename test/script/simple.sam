@@ -3,9 +3,10 @@ arg_seq_add("名字","用户名") # 可以用$1或者$名字调用
 arg_seq_add("剩余金额","用户剩余金额")# $2或者$剩余金额调用
 arg_option_add("测试","t")
 state main:
-    speak($名字 + "，请问有什么可以帮您")
+    speak($1 + "，请问有什么可以帮您")
     match @(5,2)listen():
          /投诉(.*)/ =>
+            com = $mg1
             branch compain
          "账单" =>
             branch bill
@@ -13,8 +14,7 @@ state main:
             speak("听不见，请再说一遍")
             branch main
 state compain:
-    speak("你的投诉是什么")
-    str = listen()
+    speak("您的投诉为"+ com)
     branch thanks
 
 state thanks:
@@ -22,6 +22,7 @@ state thanks:
 
 state bill:
     speak("您的本月账单是"+ 剩余金额 + "元")
+    branch thanks
 
 
 

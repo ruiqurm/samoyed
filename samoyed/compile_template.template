@@ -13,7 +13,7 @@ for key in args:
         args[key] = value[0]
 if pos_arg is not None:
     for i,arg in enumerate(pos_arg):
-        args[str(i+1)] = arg[0]
+        args[str(i+1)] = args[arg[0]]
 args["PWD"] = os.getcwd()
 interpreter =  Interpreter(ast,args=args)
 interpreter.exec()

@@ -1,6 +1,7 @@
 import sqlite3
 import subprocess
 import sys
+import time
 import unittest
 import warnings
 import os
@@ -141,6 +142,27 @@ class ScriptTest(unittest.TestCase):
             if os.path.exists("test.db"):
                 os.remove("test.db")
     def test_simple_sam(self):
-        pass
+        """
+        测试 script/simple.sam
+        """
+        path = "{}/script/simple.sam".format("/".join(__file__.split("/")[:-1]))
+        print("[simple脚本测试]")
+        # 测试账单
+        print("   [测试输入'我的账单']", end='')
+        with MockTerminal(path, "ruiqurm","100") as (write, proc):
+            write("我的账单\n")
+            proc.wait()
+            result = proc.stdout.read()
+        self.assertTrue(str(result).find("ruiqurm") != -1)
+        self.assertTrue(str(result).find("100") != -1)
+
+        print("pass\n   [测试'投诉']", end='')
+        with MockTerminal(path, "ruiqurm","100") as (write, proc):
+            write("投诉aaaaaaaaaaaaaa\n")
+            time.sleep(1)
+            proc.wait()
+            result = proc.stdout.read()
+        self.assertTrue(str(result).find("您的投诉为") != -1)
+        print("pass\n", end='')
 if __name__ == '__main__':
     unittest.main()
