@@ -1,4 +1,5 @@
 # samoyed
+[![Documentation Status](https://readthedocs.org/projects/samoyed/badge/?version=latest)](https://samoyed.readthedocs.io/en/latest/?badge=latest)  
 `samoyed` 是一个简单的客服机器人DSL。  
 文档：https://samoyed.readthedocs.io/en/latest/
 ## quick start
