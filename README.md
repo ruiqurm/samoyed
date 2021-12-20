@@ -1,6 +1,6 @@
 # samoyed
 `samoyed` 是一个简单的客服机器人DSL。  
-
+文档：https://samoyed.readthedocs.io/en/latest/
 ## quick start
 
 建立一个文件，名为`exmaple.sam`:
